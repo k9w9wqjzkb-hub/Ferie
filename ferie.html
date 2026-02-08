@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>iWork - Storico</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="ferie">
+    <header class="ios-navbar"><div class="nav-content"><span class="nav-brand">Storico</span></div></header>
+    <main class="main-content">
+        <header class="dashboard-header">
+            <p class="date-subtitle">Riepilogo Residui</p>
+            <h1 class="large-title">Ferie e ROL</h1>
+        </header>
+        <section class="ios-card-grid">
+            <div class="ios-card" style="border-left: 4px solid var(--blue);">
+                <span class="card-label" style="color:var(--blue)">Ferie (gg)</span>
+                <span class="value" id="val-ferie">--</span>
+            </div>
+            <div class="ios-card" style="border-left: 4px solid var(--orange);">
+                <span class="card-label" style="color:var(--orange)">Permessi (gg)</span>
+                <span class="value" id="val-rol">--</span>
+            </div>
+        </section>
+        <div class="filter-bar" style="padding:16px; display:flex; gap:8px;">
+            <select id="filter-tipo" class="ios-select" onchange="renderizzaTabella('ferie')" style="flex:1.5;">
+                <option value="all">Tutte</option>
+                <option value="ferie">Ferie (Tutte)</option>
+                <option value="rol">Permessi</option>
+                <option value="conto">Perm.B.Ore</option>
+                <option value="maturazione">Maturazioni</option>
+            </select>
+            <select id="filter-anno" class="ios-select" onchange="renderizzaTabella('ferie')" style="flex:1;">
+                <option value="all">Anno</option>
+            </select>
+        </div>
+        <div class="ios-card" style="margin:0 16px; padding:0; overflow:hidden;">
+            <table style="width:100%; border-collapse:collapse;"><tbody id="history-body"></tbody></table>
+        </div>
+    </main>
+
+    <div id="edit-modal-overlay" class="modal-backdrop" onclick="toggleEditModal(false)"></div>
+    <div id="edit-modal" class="ios-page-sheet" style="height: 75%;">
+        <div class="modal-nav">
+            <button onclick="toggleEditModal(false)" class="btn-link">Annulla</button>
+            <span class="modal-title" style="font-weight:600;">Modifica Record</span>
+            <button onclick="updateData()" class="btn-link" style="font-weight:700;">Salva</button>
+        </div>
+        <div style="padding: 20px; background: #F2F2F7; height: 100%;">
+            <input type="hidden" id="edit-id">
+            <div class="ios-input-group">
+                <div class="ios-input-row">
+                    <label>Tipo</label>
+                    <select id="edit-tipo">
+                        <option value="ferie">Ferie (Personali)</option>
+                        <option value="ferie_az">Ferie (Aziendali)</option>
+                        <option value="rol">Permessi (ROL)</option>
+                        <option value="conto">Perm.B.Ore</option>
+                        <option value="malattia">Malattia</option>
+                        <option value="avis">🩸 AVIS</option>
+                    </select>
+                </div>
+                <div class="ios-input-row">
+                    <label>Ore</label>
+                    <input type="number" id="edit-ore" step="0.01">
+                </div>
+                <div class="ios-input-row">
+                    <label>Data</label>
+                    <input type="date" id="edit-data">
+                </div>
+                <div class="ios-input-row">
+                    <label>Note</label>
+                    <input type="text" id="edit-note">
+                </div>
+                <div class="ios-input-row" style="justify-content:space-between; display:flex; align-items:center;">
+                    <label>Solo Pianificato</label>
+                    <input type="checkbox" id="edit-pianificato" style="width:20px; height:20px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="tab-bar">
+        <a href="index.html" class="tab-item">🏠<span>Home</span></a>
+        <a href="ferie.html" class="tab-item active">📅<span>Ferie</span></a>
+        <a href="malattia.html" class="tab-item">🤒<span>Malattia</span></a>
+    </nav>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "iWork",
+  "short_name": "iWork",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F2F2F7",
+  "theme_color": "#007AFF"
+}
