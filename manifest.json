@@ -1,21 +1,13 @@
 {
-  "name": "iWork - Gestione Ore",
+  "name": "iWork",
   "short_name": "iWork",
   "start_url": "index.html",
-  "scope": "./",
   "display": "standalone",
   "background_color": "#F2F2F7",
   "theme_color": "#007AFF",
+  "scope": "./",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "icon-512.png",
-      "type": "image/png",
-      "sizes": "512x512"
-    }
+    { "src": "icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "icon-512.png", "type": "image/png", "sizes": "512x512" }
   ]
 }
