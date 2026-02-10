@@ -1,12 +1,13 @@
-const CACHE_NAME = 'iwork-v1';
-const ASSETS = [
-  '/',
-  '/index.html',
-  '/ferie.html',
-  '/malattia.html',
-  '/style.css',
-  '/app.js',
-  '/manifest.json'
+const CACHE_NAME = 'iwork-v3';
+// Rimosso lo slash iniziale "/" per compatibilità con sottocartelle GitHub
+const assets = [
+    './', 
+    'index.html', 
+    'ferie.html', 
+    'malattia.html', 
+    'style.css', 
+    'app.js', 
+    'manifest.json'
 ];
 
 // Installazione e caching
