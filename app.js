@@ -1,9 +1,7 @@
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('SW registrato su Netlify'))
-            .catch(err => console.error('Errore SW:', err));
-    });
+  navigator.serviceWorker.register('sw.js')
+    .then(() => console.log("iWork: Pronto per l'uso offline"))
+    .catch((err) => console.log("Errore SW:", err));
 }
 
 // ... resto del codice ...
@@ -251,11 +249,3 @@ function elimina(id) { if(confirm("Eliminare?")) { const m = JSON.parse(localSto
 function setupDate() { if(document.getElementById('current-date')) document.getElementById('current-date').innerText = new Date().toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'}); if(document.getElementById('in-data')) document.getElementById('in-data').value = new Date().toISOString().split('T')[0]; }
 function exportBackup() { const b = new Blob([JSON.stringify({m:JSON.parse(localStorage.getItem('movimenti')), s:getSettings()})], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download='iWork_Backup.json'; a.click(); }
 function importBackup(e) { const r = new FileReader(); r.onload=(x)=>{const j=JSON.parse(x.target.result); localStorage.setItem('movimenti', JSON.stringify(j.m)); localStorage.setItem('userSettings', JSON.stringify(j.s)); location.reload();}; r.readAsText(e.target.files[0]); }
-// Registrazione del Service Worker per supporto PWA
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('SW Registrato con successo', reg))
-            .catch(err => console.log('Errore registrazione SW', err));
-    });
-}
