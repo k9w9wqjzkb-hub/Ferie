@@ -11,31 +11,44 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background: var(--bg);
     margin: 0;
-    padding-bottom: 100px;
+    /* Gestione dinamica degli spazi per iPhone (Notch e Home Bar) */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
     color: #000;
     -webkit-tap-highlight-color: transparent;
 }
 
+/* NAVBAR AGGIORNATA PER IPHONE */
 .ios-navbar {
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    padding: 55px 16px 12px;
+    padding: calc(45px + env(safe-area-inset-top)) 16px 12px;
     border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
     position: sticky; top: 0; z-index: 100;
     display: flex; align-items: center; justify-content: center;
 }
+
 .nav-brand { font-weight: 600; font-size: 17px; }
 .dashboard-header { padding: 10px 20px 20px; }
 .large-title { font-size: 34px; font-weight: 700; letter-spacing: -1px; margin: 0; }
 .date-subtitle { color: #8E8E93; text-transform: uppercase; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
 
+/* GRIGLIE E CARD */
 .ios-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px 16px; }
 .ios-card { background: var(--card-bg); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
 .card-label { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
 .value { font-size: 22px; font-weight: 700; }
 
-.ios-input-group { background: white; border-radius: 12px; margin: 0 0 20px 0; border: 0.5px solid #DDD; overflow: hidden; }
+/* INPUT E FORM */
+.ios-input-group {
+    background: white;
+    border-radius: 12px;
+    margin: 0 0 20px 0;
+    border: 1px solid var(--line);
+    overflow: visible; /* 🔥 era hidden → tagliava il toggle */
+}
+
 .ios-input-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid #EEE; }
 .ios-input-row label { font-size: 17px; color: #000; }
 .ios-input-row input, .ios-input-row select {
@@ -43,19 +56,91 @@ body {
     text-align: right; outline: none; width: 60%; 
 }
 
+/* BOTTONI E FAB */
 .ios-card-btn { background: var(--card-bg); width: 100%; border-radius: 12px; border: none; padding: 18px 16px; display: flex; justify-content: space-between; font-size: 16px; cursor: pointer; }
-.ios-fab { position: fixed; bottom: 110px; right: 20px; width: 56px; height: 56px; background: var(--blue); color: white; border-radius: 28px; border: none; font-size: 32px; box-shadow: 0 4px 12px rgba(0,122,255,0.3); z-index: 50; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-.tab-bar { position: fixed; bottom: 0; width: 100%; height: 85px; background: rgba(255,255,255,0.9); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: flex; border-top: 0.5px solid rgba(0,0,0,0.1); z-index: 100; padding-bottom: 20px; }
-.tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #8E8E93; }
-.tab-item span { font-size: 10px; margin-top: 4px; }
-.tab-item.active { color: var(--blue); }
+.ios-fab { 
+    position: fixed; 
+    bottom: calc(110px + env(safe-area-inset-bottom)); 
+    right: 20px; 
+    width: 56px; height: 56px; background: var(--blue); color: white; border-radius: 28px; border: none; font-size: 32px; box-shadow: 0 4px 12px rgba(0,122,255,0.3); z-index: 50; display: flex; align-items: center; justify-content: center; cursor: pointer; 
+}
 
-.ios-page-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; border-radius: 15px 15px 0 0; transition: bottom 0.4s cubic-bezier(0.25, 0.1, 0.25, 1); z-index: 200; box-shadow: 0 -5px 20px rgba(0,0,0,0.15); }
+/* TAB BAR AGGIORNATA PER IPHONE */
+/* =========================
+   LIQUID PILL TAB BAR
+   ========================= */
+
+.tab-bar {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  border-radius: 40px;
+  background: rgba(20,20,24,0.55);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  box-shadow:
+    0 8px 30px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+  z-index: 1000;
+}
+
+.tab-item {
+  position: relative;
+  flex: 1;
+  text-align: center;
+  padding: 8px 0;
+  z-index: 2;
+  color: rgba(255,255,255,0.6);
+  font-size: 20px;
+  transition: color 0.25s ease;
+}
+
+.tab-item span {
+  display: block;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.tab-item.active {
+  color: #fff;
+}
+
+/* PILL INDICATOR */
+
+.liquid-indicator {
+  position: absolute;
+  height: 56px;
+  border-radius: 999px;
+  background: linear-gradient(
+    145deg,
+    rgba(255,255,255,0.18),
+    rgba(255,255,255,0.05)
+  );
+  backdrop-filter: blur(35px);
+  -webkit-backdrop-filter: blur(35px);
+  box-shadow:
+    inset 0 1px 2px rgba(255,255,255,0.35),
+    0 4px 20px rgba(0,0,0,0.35);
+  transition: all 0.35s cubic-bezier(.4,0,.2,1);
+  z-index: 1;
+}
+
+/* MODALI E SHEET */
+.ios-page-sheet { 
+    position: fixed; bottom: -100%; left: 0; width: 100%; background: white; border-radius: 15px 15px 0 0; transition: bottom 0.4s cubic-bezier(0.25, 0.1, 0.25, 1); z-index: 200; box-shadow: 0 -5px 20px rgba(0,0,0,0.15); 
+    padding-bottom: env(safe-area-inset-bottom);
+}
 .ios-page-sheet.active { bottom: 0; }
 .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; z-index: 150; }
 .modal-nav { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 0.5px solid #EEE; background: white; border-radius: 15px 15px 0 0; }
 .btn-link { background: none; border: none; color: var(--blue); font-size: 17px; cursor: pointer; }
 
+/* BADGES */
 .badge-ferie { background: #E3F2FD; color: #0D47A1; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
 .badge-ferie_az { background: #E8EAF6; color: #3F51B5; border: 1px dashed #3F51B5; padding: 3px 7px; border-radius: 6px; font-size: 11px; font-weight: 700; }
 .badge-rol { background: #FFF3E0; color: #E65100; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
@@ -64,6 +149,779 @@ body {
 .badge-maturazione { background: #F3E5F5; color: #4A148C; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
 .badge-avis { background: #FFEBEE; color: #C62828; border: 1px solid #EF9A9A; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; }
 
+/* NUOVA SEZIONE: CALENDARIO ORIZZONTALE (Stile Tabella Allegata) */
+.calendar-wrapper {
+    overflow-x: auto;
+    margin: 10px 16px;
+    background: white;
+    border-radius: 12px;
+    border: 0.5px solid #DDD;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.calendar-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 11px;
+}
+
+.calendar-table th, .calendar-table td {
+    border: 0.5px solid #EEE;
+    min-width: 30px;
+    height: 32px;
+    text-align: center;
+    padding: 0;
+}
+
+/* Prima colonna dei mesi bloccata a sinistra durante lo scroll */
+.calendar-table td:first-child {
+    font-weight: bold;
+    background: #F9F9F9;
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    min-width: 60px;
+}
+
+.calendar-table th { background: #F2F2F7; }
+
+/* Classi Colore basate sull'allegato */
+.bg-weekend { background-color: #D1D1D6 !important; } /* Grigio */
+.bg-festivo { background-color: var(--green) !important; color: white; } /* Verde */
+.bg-ferie-coll { background-color: var(--blue) !important; color: white; } /* Blu (F) */
+.bg-patrono { background-color: #FFCC00 !important; color: black; font-weight: bold; } /* Giallo (P) */
+.bg-inventario { background-color: var(--red) !important; } /* Rosso */
+
+/* Legenda Calendario */
+.legend-container { 
+    padding: 16px; 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 12px; 
+    font-size: 12px; 
+}
+.legend-item { display: flex; align-items: center; }
+.legend-item i { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 6px; }
+
+/* UTILITY */
 .ios-select { -webkit-appearance: none; appearance: none; background: #E9E9EB; border: none; padding: 8px 12px; border-radius: 8px; font-size: 14px; color: #000; }
 .ios-btn-blue { width: 100%; background: var(--blue); color: white; padding: 14px; border-radius: 12px; border: none; font-weight: 600; font-size: 17px; cursor: pointer; }
 .ios-btn-white { width: 100%; background: white; padding: 14px; border-radius: 12px; border: 0.5px solid #DDD; font-weight: 600; font-size: 16px; cursor: pointer; }
+/* Contenitore per lo scroll orizzontale */
+.calendar-wrapper {
+    overflow-x: auto;
+    margin: 10px;
+    background: white;
+    border-radius: 12px;
+    border: 0.5px solid #DDD;
+}
+
+.calendar-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 11px;
+}
+
+.calendar-table th, .calendar-table td {
+    border: 0.5px solid #EEE;
+    min-width: 28px;
+    height: 30px;
+    text-align: center;
+    padding: 0;
+}
+
+.calendar-table th { background: #F2F2F7; position: sticky; left: 0; z-index: 2; }
+.calendar-table td:first-child { font-weight: bold; background: #F9F9F9; position: sticky; left: 0; }
+
+/* Colori celle */
+.bg-weekend { background-color: #d7d7da; } /* Grigio Apple */
+.bg-festivo { background-color: #d11c1c !important; color: white; } /* Rosso */
+.bg-ferie-coll { background-color: #ff4800 !important; color: white; } /* Arancio */
+.bg-malattia { background-color: #5D4037 !important; color: white; } /* Marrone */
+
+.legend-container { padding: 16px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; }
+.legend-item i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; }
+.box-green { background: #d11c1c; }
+.box-blue { background: #ff4800; }
+.box-grey { background: #d7d7da; }
+
+/* Subvalue sotto le card (Prev / Prog) */
+.subvalue{
+  font-size:12px;
+  color:#8E8E93;
+  margin-top:4px;
+  font-weight:600;
+}
+
+/* === CALENDARIO: colori coerenti con app.js === */
+.bg-weekend{ background-color:#D1D1D6 !important; }
+.bg-festivo{ background-color: var(--red) !important; color:#fff !important; font-weight:800; }
+.bg-ferie-az{ background-color: var(--orange) !important; color:#fff !important; font-weight:800; }
+.bg-ferie{ background-color: var(--green) !important; color:#fff !important; font-weight:800; }
+.bg-rol{ background-color: #FFD60A !important; color:#000 !important; font-weight:800; }
+.bg-conto{ background-color: #34C759 !important; color:#fff !important; font-weight:800; }
+.bg-malattia{ background-color: #5D4037 !important; color:#fff !important; font-weight:800; }
+.bg-avis{ background-color: var(--blue) !important; color:#fff !important; font-weight:800; }
+
+/* Evidenzia celle SOLO PIANIFICATO nel calendario */
+.is-pian{
+  outline: 2px dashed rgba(0,0,0,0.55);
+  outline-offset: -3px;
+  position: relative;
+}
+.is-pian::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255,255,255,0.00),
+    rgba(255,255,255,0.00) 6px,
+    rgba(255,255,255,0.18) 6px,
+    rgba(255,255,255,0.18) 10px
+  );
+  pointer-events:none;
+}
+
+/* Griglia calendario: linee verticali/orizzontali ben visibili */
+.calendar-table, .grid-table{
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+}
+.calendar-table th, .calendar-table td,
+.grid-table th, .grid-table td{
+  border: 1px solid rgba(0,0,0,0.18) !important;
+  text-align: center;
+  padding: 0;
+  min-width: 28px;
+  height: 30px;
+  font-size: 11px;
+}
+.col-mese{
+  font-weight: 700;
+  background: #F9F9F9;
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  min-width: 56px;
+}
+/* ===== Patch (non rompe il resto) ===== */
+
+/* 1) Il toggle "Solo Pianificato" può venire tagliato se overflow:hidden */
+.ios-input-group{ overflow: visible; }
+
+/* 2) Griglia calendario sempre visibile */
+.calendar-table{ border-collapse: collapse; }
+.calendar-table th, .calendar-table td{ border: 0.5px solid rgba(0,0,0,0.10) !important; }
+
+/* 3) Classi calendario coerenti con app.js */
+.bg-weekend{ background-color:#D1D1D6 !important; }
+.bg-festivo{ background-color: var(--red) !important; color:#fff !important; font-weight:800; }
+.bg-ferie-az{ background-color: var(--orange) !important; color:#fff !important; font-weight:800; }
+.bg-ferie{ background-color: var(--green) !important; color:#fff !important; font-weight:800; }
+.bg-rol{ background-color: #FFD60A !important; color:#000 !important; font-weight:800; }
+.bg-conto{ background-color: #34C759 !important; color:#fff !important; font-weight:800; }
+.bg-malattia{ background-color: #5D4037 !important; color:#fff !important; font-weight:800; }
+.bg-avis{ background-color: var(--blue) !important; color:#fff !important; font-weight:800; }
+
+/* 4) Pianificato: bordo tratteggiato */
+.is-pian{ outline: 2px dashed rgba(0,0,0,0.55); outline-offset: -3px; }
+
+
+/* =========================================================
+   DARK GLASS + LIQUID TAB BAR (v13)
+   - Always shows Liquid Glass tab bar
+   - Dark mode when system is dark
+   ========================================================= */
+
+/* Give more room for the floating tab bar */
+body{
+  padding-bottom: calc(140px + env(safe-area-inset-bottom));
+}
+
+/* Liquid glass bar */
+.tab-bar.tab-liquid{
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  max-width: 520px;
+  margin: 0 auto;
+
+  height: 78px;
+  padding: 10px 12px;
+  border-radius: 26px;
+
+  background: rgba(255,255,255,0.14);
+  backdrop-filter: blur(22px) saturate(1.6);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+
+  border: 1px solid rgba(255,255,255,0.22);
+  box-shadow:
+    0 18px 40px rgba(0,0,0,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.28);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  box-sizing: border-box;
+  overflow: hidden; /* avoid lateral overflow */
+  z-index: 100;
+}
+
+/* Colored liquid blobs behind */
+.tab-bar.tab-liquid::before{
+  content:"";
+  position:absolute;
+  inset:-18px;
+  border-radius: 34px;
+  pointer-events:none;
+  filter: blur(18px);
+  opacity: 0.85;
+  background:
+    radial-gradient(110px 70px at 18% 40%, rgba(235,16,148,0.55), transparent 60%),
+    radial-gradient(120px 80px at 82% 55%, rgba(56,10,225,0.55), transparent 60%),
+    radial-gradient(120px 80px at 60% 12%, rgba(214,35,80,0.45), transparent 60%);
+}
+
+/* Glass highlight */
+.tab-bar.tab-liquid::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius: 26px;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.02) 55%, rgba(0,0,0,0.06));
+  mix-blend-mode: overlay;
+}
+
+/* Sliding indicator */
+.tab-bar.tab-liquid .liquid-indicator{
+  position:absolute;
+  top: 50%;
+  left: 0;
+  height: 54px;
+  width: 25%;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.20);
+  border: 1px solid rgba(255,255,255,0.28);
+  box-shadow:
+    0 10px 25px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.35);
+  transform: translateY(-50%) translateX(0);
+  transition: transform 0.45s cubic-bezier(.34,1.56,.64,1), width 0.45s cubic-bezier(.34,1.56,.64,1);
+  pointer-events:none;
+  z-index: 1;
+}
+
+.tab-bar.tab-liquid .tab-item{
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  border-radius: 18px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-decoration: none;
+  z-index: 2;
+
+  font-size: 28px; /* icon size */
+  color: rgba(255,255,255,0.80);
+
+  transition: transform .15s ease, color .15s ease;
+}
+
+.tab-bar.tab-liquid .tab-item span{
+  font-size: 13px;
+  font-weight: 650;
+  margin-top: 6px;
+  color: rgba(255,255,255,0.78);
+}
+
+.tab-bar.tab-liquid .tab-item.active{
+  color: rgba(255,255,255,0.95);
+  transform: translateY(-1px);
+}
+
+.tab-bar.tab-liquid .tab-item:active{
+  transform: scale(0.92);
+}
+
+/* Tight screens */
+@media (max-width: 390px){
+  .tab-bar.tab-liquid{
+    left: 6px;
+    right: 6px;
+    height: 74px;
+  }
+  .tab-bar.tab-liquid .tab-item{
+    font-size: 26px;
+  }
+  .tab-bar.tab-liquid .tab-item span{
+    font-size: 12px;
+  }
+}
+
+/* System dark mode */
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg: #0B0B0F;
+    --card-bg: rgba(255,255,255,0.06);
+  }
+
+  body{
+    color: rgba(235,235,245,0.92);
+    background: var(--bg);
+  }
+
+  .ios-navbar{
+    background: rgba(18,18,20,0.70);
+    border-bottom: 0.5px solid rgba(255,255,255,0.10);
+  }
+
+  .ios-card{
+    background: rgba(255,255,255,0.06);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+
+  .ios-input-group{
+    background: rgba(255,255,255,0.06);
+    border: 0.5px solid rgba(255,255,255,0.12);
+  }
+
+  .ios-input-row{
+    border-bottom: 0.5px solid rgba(255,255,255,0.10);
+  }
+
+  .ios-input-row label{
+    color: rgba(235,235,245,0.92);
+  }
+
+  .ios-input-row input,
+  .ios-input-row select{
+    color: rgba(235,235,245,0.70);
+  }
+
+  .ios-card-btn{
+    background: rgba(255,255,255,0.06);
+    color: rgba(235,235,245,0.92);
+  }
+
+  .modal-nav{
+    background: rgba(18,18,20,0.92);
+    border-bottom: 0.5px solid rgba(255,255,255,0.10);
+  }
+
+  .ios-page-sheet{
+    background: rgba(18,18,20,0.92);
+  }
+
+  .tab-bar.tab-liquid{
+    background: rgba(20,20,22,0.55);
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow:
+      0 18px 40px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.16);
+  }
+
+  .tab-bar.tab-liquid .liquid-indicator{
+    background: rgba(255,255,255,0.10);
+    border-color: rgba(255,255,255,0.16);
+  }
+}
+
+/* =========================
+   PATCH v14
+   - tab bar: a bit narrower (no overflow)
+   - calendario: dark mode styles
+   ========================= */
+
+/* Narrower Liquid Glass tab bar to prevent side overflow */
+.tab-bar.tab-liquid{
+  left: 14px;
+  right: 14px;
+  max-width: 480px;
+  padding: 10px 10px;
+}
+
+@media (max-width: 390px){
+  .tab-bar.tab-liquid{
+    left: 10px;
+    right: 10px;
+    max-width: none;
+  }
+  .tab-bar.tab-liquid .tab-item{
+    font-size: 26px;
+  }
+  .tab-bar.tab-liquid .tab-item span{
+    font-size: 12px;
+  }
+}
+
+/* Dark mode calendar (wrapper + grid) */
+@media (prefers-color-scheme: dark){
+  .calendar-wrapper{
+    background: rgba(18,18,20,0.92);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  }
+
+  .calendar-table{
+    color: rgba(235,235,245,0.92);
+  }
+
+  .calendar-table th{
+    background: rgba(255,255,255,0.06);
+    color: rgba(235,235,245,0.92);
+  }
+
+  .calendar-table td,
+  .calendar-table th{
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .calendar-table td:first-child{
+    background: rgba(255,255,255,0.06);
+    color: rgba(235,235,245,0.92);
+  }
+
+  /* Weekend slightly darker (if not overridden by event colors) */
+  .bg-weekend{
+    background-color: rgba(255,255,255,0.10) !important;
+  }
+
+  /* Empty/invalid days */
+  .calendar-table td.bg-empty,
+  .calendar-table td:empty{
+    background: rgba(255,255,255,0.03);
+  }
+}
+
+/* =========================================================
+   v15 FIXES
+   - Tab bar: prevent lateral spill (real width clamp)
+   - Calendar: restore black glass + strong grid + colors + weekend
+   ========================================================= */
+
+/* --- TAB BAR: hard clamp inside viewport (bar itself, not just content) --- */
+.tab-bar.tab-liquid{
+  left: 50% !important;
+  right: auto !important;
+  width: min(520px, calc(100% - 28px)) !important;
+  transform: translateX(-50%) !important;
+}
+
+@media (max-width: 390px){
+  .tab-bar.tab-liquid{
+    width: calc(100% - 20px) !important;
+  }
+}
+
+/* If the shadow makes it "look" like overflow, keep bar clipped but allow shadow inside */
+.tab-bar.tab-liquid{ overflow: clip; }
+
+/* --- CALENDAR: black glass look (always, because you liked it) --- */
+body[data-page="calendario"] .calendar-wrapper{
+  margin: 10px 14px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(18,18,20,0.60);
+  backdrop-filter: blur(24px) saturate(1.35);
+  -webkit-backdrop-filter: blur(24px) saturate(1.35);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow:
+    0 14px 38px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.10);
+}
+
+body[data-page="calendario"] .calendar-table{
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  color: rgba(255,255,255,0.92);
+}
+
+/* strong grid like before */
+body[data-page="calendario"] .calendar-table th,
+body[data-page="calendario"] .calendar-table td{
+  border: 1px solid rgba(255,255,255,0.14);
+  min-width: 28px;
+  height: 30px;
+  text-align: center;
+  padding: 0;
+}
+
+body[data-page="calendario"] .calendar-table th{
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85);
+  font-weight: 700;
+}
+
+/* sticky month column */
+body[data-page="calendario"] .calendar-table .col-mese,
+body[data-page="calendario"] .calendar-table td:first-child{
+  position: sticky;
+  left: 0;
+  z-index: 6;
+  min-width: 64px;
+  font-weight: 800;
+  background: rgba(10,10,12,0.65);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* weekend */
+body[data-page="calendario"] .bg-weekend{
+  background: rgba(255,255,255,0.10) !important;
+  color: rgba(255,255,255,0.92) !important;
+}
+
+/* Festività: rosso */
+body[data-page="calendario"] .bg-festivo{
+  background: #FF3B30 !important;
+  color: #fff !important;
+  font-weight: 800;
+}
+
+/* Ferie AZ: arancio */
+body[data-page="calendario"] .bg-ferie-az{
+  background: #FF9500 !important;
+  color: #111 !important;
+  font-weight: 800;
+}
+
+/* Ferie personali: verde */
+body[data-page="calendario"] .bg-ferie{
+  background: #34C759 !important;
+  color: #0b1a10 !important;
+  font-weight: 800;
+}
+
+/* ROL: giallo */
+body[data-page="calendario"] .bg-rol{
+  background: #FFCC00 !important;
+  color: #111 !important;
+  font-weight: 900;
+}
+
+/* Conto ore: teal / azzurrino (distinto) */
+body[data-page="calendario"] .bg-conto{
+  background: #64D2FF !important;
+  color: #061018 !important;
+  font-weight: 900;
+}
+
+/* Malattia: marrone */
+body[data-page="calendario"] .bg-malattia{
+  background: #5D4037 !important;
+  color: #fff !important;
+  font-weight: 800;
+}
+
+/* AVIS: blu */
+body[data-page="calendario"] .bg-avis{
+  background: #0A84FF !important;
+  color: #fff !important;
+  font-weight: 900;
+}
+
+/* Pianificato: bordo tratteggiato */
+body[data-page="calendario"] .is-pian{
+  outline: 2px dashed rgba(255,255,255,0.9);
+  outline-offset: -3px;
+}
+
+/* empty (non existing day) */
+body[data-page="calendario"] td[style*="background:#F2F2F7"],
+body[data-page="calendario"] td[style*="background: #F2F2F7"]{
+  background: rgba(255,255,255,0.05) !important;
+}
+
+/* Title spacing on calendar page */
+body[data-page="calendario"] .dashboard-header{ padding-bottom: 8px; }
+
+/* =========================
+   CALENDARIO - FIX SCROLL + GRIGLIA
+   ========================= */
+
+/* wrapper: DEVE scrollare */
+.calendar-wrapper{
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+/* tabella: deve essere più larga dello schermo per far partire lo scroll */
+.calendar-table{
+  border-collapse: collapse !important;
+  table-layout: fixed;
+  width: max-content !important;      /* chiave: diventa larga quanto serve */
+  min-width: 1100px;                  /* forza larghezza > iPhone */
+}
+
+/* celle: righe ben visibili (verticali e orizzontali) */
+.calendar-table th,
+.calendar-table td{
+  border: 1px solid rgba(255,255,255,0.16) !important; /* griglia */
+}
+
+/* intestazione giorni: resta “sopra” e si vede bene */
+.calendar-table th{
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: rgba(20,20,22,0.78) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* prima colonna (mesi): sticky a sinistra durante lo scroll */
+.calendar-table td:first-child,
+.calendar-table th:first-child{
+  position: sticky;
+  left: 0;
+  z-index: 7;
+  min-width: 74px;                    /* mesi più leggibili */
+  background: rgba(20,20,22,0.78) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(255,255,255,0.22) !important;
+}
+
+/* =========================
+   HEADER - più compatto + logo più grande
+   ========================= */
+
+.ios-navbar{
+  padding: calc(22px + env(safe-area-inset-top)) 16px 10px !important; /* prima era molto più alto */
+}
+
+.nav-brand{
+  font-size: 22px !important;   /* ingrandisce iWork */
+  font-weight: 800 !important;
+  letter-spacing: -0.4px;
+}
+
+
+/* Sheet body black glass fix */
+.sheet-body {
+  background: var(--bg);
+}
+
+@media (prefers-color-scheme: dark) {
+  .sheet-body {
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(20px);
+  }
+}
+/* ===== FIX MODALE DARK GLASS ===== */
+
+.ios-page-sheet {
+  background: rgba(18,18,22,0.92);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  color: #fff;
+}
+
+.ios-input-group {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.ios-input-row {
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.ios-input-row label {
+  color: #ccc;
+}
+
+.ios-input-row input,
+.ios-input-row select {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.ios-input-row input::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+
+
+/* ===== PATCH v21: pill centrata su icona+testo + fix overflow + sheet body ===== */
+.tab-bar {
+  box-sizing: border-box;
+  width: min(94%, 560px);
+  padding: 6px;
+  overflow: hidden;
+}
+
+.tab-item {
+  min-width: 0;
+  padding: 10px 0;
+  font-size: 19px; /* emoji */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.tab-item span {
+  margin-top: 0;
+  font-size: 11px;
+}
+
+/* pill centrata */
+.liquid-indicator {
+  top: 50%;
+  left: 0;
+  height: auto; /* JS imposta height */
+  pointer-events: none;
+}
+
+/* Body dei sheet: niente sfondo chiaro che nasconde il testo in dark */
+.ios-page-sheet .sheet-body {
+  background: transparent !important;
+}
+
+/* Consuntivo/settings (dark glass) */
+#settings-panel {
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  color: #fff;
+}
+#settings-panel h3 { color: #fff; }
+
+
+/* =========================
+   MULTI-USER: user pill
+   ========================= */
+.nav-content{ position: relative; width: 100%; display:flex; align-items:center; justify-content:center; }
+#user-pill{
+  position:absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.92);
+  font-weight: 800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+@media (prefers-color-scheme: light){
+  #user-pill{ border: 1px solid rgba(0,0,0,0.10); background: rgba(0,0,0,0.06); color: rgba(0,0,0,0.82); }
+}
