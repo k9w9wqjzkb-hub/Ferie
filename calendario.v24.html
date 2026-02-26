@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+
+<html lang="it">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>iWork - Calendario Orizzontale</title>
+<link href="style.v24c.css" rel="stylesheet"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
+</head>
+<body data-page="calendario">
+<header class="ios-navbar">
+<div class="nav-content"><span class="nav-brand">iWork</span><button id="user-pill" class="user-pill" onclick="openUserPicker()" title="Cambia utente">U</button></div>
+</header>
+
+<main class="main-content">
+<header class="dashboard-header">
+<p class="date-subtitle" id="current-date"></p>
+<h1 class="large-title" id="calendar-title">Calendario</h1>
+</header>
+
+<div class="calendar-wrapper">
+<table class="calendar-table">
+<thead>
+<tr id="calendarHeader"></tr>
+</thead>
+<tbody id="calendarBody"></tbody>
+</table>
+</div>
+</main>
+<nav class="tab-bar tab-liquid">
+  <div class="liquid-indicator"></div>
+
+  <a href="index.html" class="tab-item">🏠<span>Home</span></a>
+  <a href="ferie.html" class="tab-item">📅<span>Ferie</span></a>
+  <a href="malattia.html" class="tab-item">🤒<span>Malattia</span></a>
+  <a href="calendario.html" class="tab-item active">🗓️<span>Calendario</span></a>
+</nav>
+
+<script src="app.v24c.js"></script>
+</body>
+</html>

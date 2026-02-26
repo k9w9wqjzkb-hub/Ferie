@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>iWork - Ferie</title>
+  <link rel="stylesheet" href="style.v24c.css">
+  <link rel="manifest" href="manifest.v24c.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body data-page="ferie">
+  <header class="ios-navbar">
+    <div class="nav-content"><span class="nav-brand">iWork</span><button id="user-pill" class="user-pill" onclick="openUserPicker()" title="Cambia utente">U</button></div>
+  </header>
+
+  <main class="main-content">
+    <header class="dashboard-header">
+      <p class="date-subtitle" id="current-date"></p>
+      <h1 class="large-title">Ferie</h1>
+    </header>
+
+    <section class="ios-card-grid">
+      <div class="ios-card" style="border-left: 4px solid var(--blue);">
+        <span class="card-label" style="color:var(--blue)">Ferie</span>
+        <span class="value" id="val-ferie">--</span>
+        <span class="subvalue" id="val-ferie-prev">Prev: --</span>
+      </div>
+      <div class="ios-card" style="border-left: 4px solid var(--orange);">
+        <span class="card-label" style="color:var(--orange)">Permessi</span>
+        <span class="value" id="val-rol">--</span>
+        <span class="subvalue" id="val-rol-prev">Prev: --</span>
+      </div>
+      <div class="ios-card" style="border-left: 4px solid var(--green);">
+        <span class="card-label" style="color:var(--green)">Perm.B.Ore</span>
+        <span class="value" id="val-conto">--</span>
+        <span class="subvalue" id="val-conto-prev">Prev: --</span>
+      </div>
+      <div class="ios-card" style="border-left: 4px solid var(--red);">
+        <span class="card-label" style="color:var(--red)">Malattia</span>
+        <span class="value" id="val-malattia">--</span>
+        <span class="subvalue" id="val-malattia-prev">Prev: --</span>
+      </div>
+    </section>
+
+    <div style="padding: 0 16px 8px; display:flex; gap:10px;">
+      <select id="filter-anno" class="ios-select" style="flex:1;"></select>
+      <select id="filter-tipo" class="ios-select" style="flex:1;">
+        <option value="all">Tutti i tipi</option>
+        <option value="ferie">Ferie</option>
+        <option value="ferie_az">Ferie AZ.</option>
+        <option value="rol">ROL</option>
+        <option value="conto">Conto ore</option>
+        <option value="avis">AVIS</option>
+        <option value="maturazione">Maturazioni</option>
+      </select>
+    </div>
+
+    <div style="padding: 0 16px;">
+      <table style="width:100%; border-collapse:collapse; font-size:12px;">
+        <thead>
+          <tr style="background:rgba(255,255,255,0.06); border-bottom:0.5px solid rgba(255,255,255,0.10);">
+            <th style="padding:10px; text-align:left;">DATA</th>
+            <th style="padding:10px; text-align:left;">TIPO</th>
+            <th style="padding:10px; text-align:left;">ORE</th>
+            <th style="padding:10px; text-align:right;">AZIONI</th>
+          </tr>
+        </thead>
+        <tbody id="history-body"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <nav class="tab-bar tab-liquid">
+    <div class="liquid-indicator"></div>
+    <a href="index.html" class="tab-item">🏠<span>Home</span></a>
+    <a href="ferie.html" class="tab-item active">📅<span>Ferie</span></a>
+    <a href="malattia.html" class="tab-item">🤒<span>Malattia</span></a>
+    <a href="calendario.html" class="tab-item">🗓️<span>Calendario</span></a>
+  </nav>
+
+  <script src="app.v24c.js"></script>
+</body>
+</html>
