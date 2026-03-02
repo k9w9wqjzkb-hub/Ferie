@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<html lang="it">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>iWork - Storico</title>
+<link href="style.css?v=17" rel="stylesheet"/>
+<link href="manifest.json?v=16" rel="manifest"/><link href="icon-180.png" rel="apple-touch-icon" sizes="180x180"/><link href="icon-167.png" rel="apple-touch-icon" sizes="167x167"/><link href="icon-152.png" rel="apple-touch-icon" sizes="152x152"/><link href="icon-120.png" rel="apple-touch-icon" sizes="120x120"/><meta content="yes" name="apple-mobile-web-app-capable"/><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/></head>
+<body data-page="ferie">
+<header class="ios-navbar"><div class="nav-content">
+            <span class="nav-brand">Storico</span>
+            <div class="user-switch" aria-label="Selettore utente">
+                <select id="userSelect" class="user-select" aria-label="Utente"></select>
+                <button id="userAddBtn" class="user-add" aria-label="Aggiungi utente">＋</button>
+            </div>
+        </div></header>
+<main class="main-content">
+<header class="dashboard-header">
+<p class="date-subtitle">Riepilogo Residui</p>
+<h1 class="large-title">Ferie e ROL</h1>
+</header>
+<section class="ios-card-grid">
+<div class="ios-card" style="border-left: 4px solid var(--blue);">
+<span class="card-label" style="color:var(--blue)">Ferie (gg)</span>
+<span class="value" id="val-ferie">--</span>
+                <span class="subvalue" id="val-ferie-pian">Prev: --</span>
+</div>
+<div class="ios-card" style="border-left: 4px solid var(--orange);">
+<span class="card-label" style="color:var(--orange)">Permessi (gg)</span>
+<span class="value" id="val-rol">--</span>
+                <span class="subvalue" id="val-rol-pian">Prev: --</span>
+</div>
+</section>
+<div class="filter-bar" style="padding:16px; display:flex; gap:8px;">
+<select class="ios-select" id="filter-tipo" onchange="renderizzaTabella('ferie')" style="flex:1.5;">
+<option value="all">Tutte</option>
+<option value="ferie">Ferie (Tutte)</option>
+<option value="rol">Permessi</option>
+<option value="conto">Perm.B.Ore</option>
+<option value="maturazione">Maturazioni</option>
+</select>
+<select class="ios-select" id="filter-anno" onchange="renderizzaTabella('ferie')" style="flex:1;">
+<option value="all">Anno</option>
+</select>
+</div>
+<div class="ios-card" style="margin:0 16px; padding:0; overflow:hidden;">
+<table style="width:100%; border-collapse:collapse;"><tbody id="history-body"></tbody></table>
+</div>
+</main>
+<nav class="tab-bar">
+  <div class="liquid-indicator"></div>
+
+  <a href="index.html" class="tab-item">🏠<span>Home</span></a>
+  <a href="ferie.html" class="tab-item active">📅<span>Ferie</span></a>
+  <a href="malattia.html" class="tab-item">🤒<span>Malattia</span></a>
+  <a href="calendario.html" class="tab-item">🗓️<span>Calendario</span></a>
+</nav>
+
+
+<div id="modal-overlay" class="modal-backdrop" onclick="toggleModal(false)"></div>
+    <div id="add-modal" class="ios-page-sheet" style="height: 75%;">
+        <div class="modal-nav">
+            <button onclick="toggleModal(false)" class="btn-link">Annulla</button>
+            <span class="modal-title" style="font-weight:600;">Nuovo Record</span>
+            <button onclick="saveData()" class="btn-link" style="font-weight:700;">Aggiungi</button>
+        </div>
+
+<script src="app.js?v=17"></script>
+</body>
+</html>
