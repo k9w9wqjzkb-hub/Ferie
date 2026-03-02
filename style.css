@@ -902,26 +902,61 @@ body[data-page="calendario"] .dashboard-header{ padding-bottom: 8px; }
 #settings-panel h3 { color: #fff; }
 
 
-/* =========================
-   MULTI-USER: user pill
-   ========================= */
-.nav-content{ position: relative; width: 100%; display:flex; align-items:center; justify-content:center; }
-#user-pill{
-  position:absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(255,255,255,0.10);
-  color: rgba(255,255,255,0.92);
-  font-weight: 800;
+
+/* === USER SWITCH === */
+.nav-content{
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.user-switch{
   display:flex;
   align-items:center;
-  justify-content:center;
+  gap:8px;
 }
+
+.user-select{
+  -webkit-appearance:none;
+  appearance:none;
+  border:none;
+  outline:none;
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.92);
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.16);
+  max-width: 160px;
+}
+
+.user-add{
+  border:none;
+  outline:none;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(255,255,255,0.92);
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.16);
+  cursor:pointer;
+}
+
 @media (prefers-color-scheme: light){
-  #user-pill{ border: 1px solid rgba(0,0,0,0.10); background: rgba(0,0,0,0.06); color: rgba(0,0,0,0.82); }
+  .user-select, .user-add{
+    color: rgba(0,0,0,0.82);
+    background: rgba(0,0,0,0.06);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.60);
+  }
 }

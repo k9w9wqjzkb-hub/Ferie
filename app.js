@@ -9,49 +9,126 @@ if ('serviceWorker' in navigator) {
 
 const ORE_GIORNO = 8;
 
+
 /* =========================
-   MULTI-USER
-   - Dati separati per utente (localStorage)
-   - Utenti: Sergio / Mirian / Christian
+   MULTI-UTENTE (v1)
+   - tendina utente + dati separati per utente
+   - migrazione automatica dai vecchi key: "movimenti" / "userSettings"
    ========================= */
-const USERS = [
-  { id: 'sergio', name: 'Sergio' },
-  { id: 'mirian', name: 'Mirian' },
-  { id: 'christian', name: 'Christian' },
-];
+const USERS_KEY = "iwork:users:v1";
+const CURRENT_USER_KEY = "iwork:currentUserId:v1";
 
-function getActiveUserId() {
-  const saved = (localStorage.getItem('activeUserId') || '').trim();
-  if (USERS.some(u => u.id === saved)) return saved;
-  // default
-  localStorage.setItem('activeUserId', USERS[0].id);
-  return USERS[0].id;
+function loadUsers() {
+  return JSON.parse(localStorage.getItem(USERS_KEY)) || [];
+}
+function saveUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+function getCurrentUserIdRaw() {
+  return localStorage.getItem(CURRENT_USER_KEY);
+}
+function setCurrentUserId(id) {
+  localStorage.setItem(CURRENT_USER_KEY, id);
 }
 
-function setActiveUserId(id) {
-  if (!USERS.some(u => u.id === id)) return;
-  localStorage.setItem('activeUserId', id);
+function userKey(base, id) {
+  return `${base}:${id}`;
 }
 
-function getActiveUserName() {
-  const id = getActiveUserId();
-  return (USERS.find(u => u.id === id) || USERS[0]).name;
+function migrateLegacyIfNeeded(curId) {
+  try {
+    if (localStorage.getItem("iwork:legacyMigrated:v1") === "1") return;
+    const legacyMov = localStorage.getItem("movimenti");
+    const legacySet = localStorage.getItem("userSettings");
+    const hasUserMov = localStorage.getItem(userKey("movimenti", curId));
+    const hasUserSet = localStorage.getItem(userKey("userSettings", curId));
+
+    if ((legacyMov || legacySet) && (!hasUserMov && !hasUserSet)) {
+      if (legacyMov) localStorage.setItem(userKey("movimenti", curId), legacyMov);
+      if (legacySet) localStorage.setItem(userKey("userSettings", curId), legacySet);
+      localStorage.setItem("iwork:legacyMigrated:v1", "1");
+    }
+  } catch(e) {}
 }
 
-function openUserPicker() {
-  const current = getActiveUserName();
-  const choices = USERS.map(u => u.name).join(' / ');
-  const resp = prompt(`Utente (${choices}):`, current);
-  if (resp === null) return;
-  const name = String(resp).trim().toLowerCase();
-  const found = USERS.find(u => u.name.toLowerCase() === name || u.id === name);
-  if (!found) return alert('Utente non valido');
-  setActiveUserId(found.id);
-  location.reload();
+function ensureUserId() {
+  let users = loadUsers();
+  let cur = getCurrentUserIdRaw();
+
+  // primo avvio: crea utente
+  if (!users.length) {
+    const defaultName = "Sergio";
+    const name = (prompt("Nome utente (es. Sergio, Mirian, Christian):", defaultName) || defaultName).trim() || defaultName;
+    const id = Date.now().toString(36);
+    users = [{ id, name, createdAt: new Date().toISOString() }];
+    saveUsers(users);
+    setCurrentUserId(id);
+    cur = id;
+  }
+
+  // current invalido -> primo utente
+  if (!cur || !users.some(u => u.id === cur)) {
+    cur = users[0].id;
+    setCurrentUserId(cur);
+  }
+
+  migrateLegacyIfNeeded(cur);
+
+  // init dati vuoti
+  if (!localStorage.getItem(userKey("userSettings", cur))) {
+    localStorage.setItem(userKey("userSettings", cur), JSON.stringify(defaultSettings));
+  }
+  if (!localStorage.getItem(userKey("movimenti", cur))) {
+    localStorage.setItem(userKey("movimenti", cur), JSON.stringify([]));
+  }
+
+  return cur;
 }
 
-function storageKey(base) {
-  return `${base}__${getActiveUserId()}`;
+function currentId() {
+  return ensureUserId();
+}
+
+function addUser(name) {
+  const users = loadUsers();
+  const id = (Date.now().toString(36) + Math.random().toString(36).slice(2));
+  users.push({ id, name: name.trim(), createdAt: new Date().toISOString() });
+  saveUsers(users);
+
+  localStorage.setItem(userKey("movimenti", id), JSON.stringify([]));
+  localStorage.setItem(userKey("userSettings", id), JSON.stringify(defaultSettings));
+
+  setCurrentUserId(id);
+  return id;
+}
+
+function initUserPickerUI() {
+  const sel = document.getElementById("userSelect");
+  const btn = document.getElementById("userAddBtn");
+  if (!sel) return;
+
+  const users = loadUsers();
+  const cur = ensureUserId();
+
+  sel.innerHTML = users.map(u => {
+    const s = (u.id === cur) ? "selected" : "";
+    const safeName = String(u.name).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    return `<option value="${u.id}" ${s}>${safeName}</option>`;
+  }).join("");
+
+  sel.onchange = () => {
+    setCurrentUserId(sel.value);
+    location.reload();
+  };
+
+  if (btn) {
+    btn.onclick = () => {
+      const name = prompt("Nome nuovo utente:", "");
+      if (!name || !name.trim()) return;
+      addUser(name);
+      location.reload();
+    };
+  }
 }
 
 const defaultSettings = {
@@ -116,36 +193,18 @@ function getFestivitaNazionaliIT(anno) {
    STORAGE
    ========================= */
 function initSettings() {
-  // Migrazione: se esistono i vecchi key globali, li copiamo su Sergio al primo avvio
-  const sergioSettingsKey = storageKey('userSettings');
-  const sergioMovKey = storageKey('movimenti');
-
-  const legacySettings = localStorage.getItem('userSettings');
-  const legacyMov = localStorage.getItem('movimenti');
-
-  if (legacySettings && !localStorage.getItem(sergioSettingsKey)) {
-    localStorage.setItem(sergioSettingsKey, legacySettings);
-  }
-  if (legacyMov && !localStorage.getItem(sergioMovKey)) {
-    localStorage.setItem(sergioMovKey, legacyMov);
-  }
-
-  const k = storageKey('userSettings');
-  if (!localStorage.getItem(k)) {
-    localStorage.setItem(k, JSON.stringify(defaultSettings));
+  if (!localStorage.getItem(userKey('userSettings', currentId()))) {
+    localStorage.setItem(userKey('userSettings', currentId()), JSON.stringify(defaultSettings));
   }
 }
-
 function getSettings() {
-  return JSON.parse(localStorage.getItem(storageKey('userSettings'))) || defaultSettings;
+  return JSON.parse(localStorage.getItem(userKey('userSettings', currentId()))) || defaultSettings;
 }
-
 function getMovimenti() {
-  return JSON.parse(localStorage.getItem(storageKey('movimenti'))) || [];
+  return JSON.parse(localStorage.getItem(userKey('movimenti', currentId()))) || [];
 }
-
 function setMovimenti(m) {
-  localStorage.setItem('movimenti', JSON.stringify(m));
+  localStorage.setItem(userKey('movimenti', currentId()), JSON.stringify(m));
 }
 
 /* =========================
@@ -173,15 +232,8 @@ function setPianificatoChecked(v) {
    INIT
    ========================= */
 window.onload = () => {
+  initUserPickerUI();
   initSettings();
-
-  // UI: mostra utente attivo
-  const up = document.getElementById('user-pill');
-  if (up) {
-    const name = getActiveUserName();
-    up.innerText = name ? name.charAt(0).toUpperCase() : 'U';
-    up.setAttribute('aria-label', `Utente: ${name}`);
-  }
 
   const activePage = document.body.getAttribute('data-page');
   // Titolo Calendario
@@ -408,18 +460,6 @@ function aggiornaInterfaccia(page) {
   setCard('val-rol', saldoRol);
   setCard('val-conto', saldoConto);
 
-  // Prev (saldo - pianificato) -> sempre visibile se l'elemento esiste
-  const setPrev = (id, saldoOre, pianOre) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const ore = (Number(saldoOre) || 0) - (Number(pianOre) || 0);
-    el.innerText = "Prev: " + fmtGG(ore);
-  };
-
-  setPrev('val-ferie-prev', saldoFerie, calcoli.ferie.pian);
-  setPrev('val-rol-prev', saldoRol, calcoli.rol.pian);
-  setPrev('val-conto-prev', saldoConto, calcoli.conto.pian);
-
   // Prev: saldo - pian (sempre)
   setCardPrev('val-ferie-pian', saldoFerie, calcoli.ferie.pian);
   setCardPrev('val-rol-pian',   saldoRol,   calcoli.rol.pian);
@@ -565,7 +605,7 @@ function azzeraGoduti() {
   });
 
   s.dataInizioConteggio = new Date().getFullYear() + '-01-01';
-  localStorage.setItem('userSettings', JSON.stringify(s));
+  localStorage.setItem(userKey('userSettings', currentId()), JSON.stringify(s));
   location.reload();
 }
 
@@ -681,7 +721,7 @@ function saveSettings() {
     s.residuiAP[c] = parseFloat(document.getElementById(`set-ap-${c}`)?.value) || 0;
     s.spettanteAnnuo[c] = parseFloat(document.getElementById(`set-spet-${c}`)?.value) || 0;
   });
-  localStorage.setItem('userSettings', JSON.stringify(s));
+  localStorage.setItem(userKey('userSettings', currentId()), JSON.stringify(s));
   location.reload();
 }
 
@@ -771,11 +811,22 @@ function setupDate() {
 }
 
 function exportBackup() {
-  const payload = { user: getActiveUserId(), m: getMovimenti(), s: getSettings() };
+  const users = loadUsers();
+  const cur = ensureUserId();
+  const u = users.find(x => x.id === cur);
+  const uname = (u?.name || "utente").replace(/\s+/g, "_");
+
+  const payload = {
+    v: 1,
+    user: { id: cur, name: u?.name || "Utente" },
+    m: getMovimenti(),
+    s: getSettings()
+  };
+
   const b = new Blob([JSON.stringify(payload)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(b);
-  a.download = 'iWork_Backup.json';
+  a.download = `iWork_Backup_${uname}.json`;
   a.click();
 }
 
@@ -786,9 +837,28 @@ function importBackup(e) {
   const r = new FileReader();
   r.onload = (x) => {
     const j = JSON.parse(x.target.result);
-    const targetUser = (j && j.user && USERS.some(u => u.id === j.user)) ? j.user : getActiveUserId();
-    localStorage.setItem(`movimenti__${targetUser}`, JSON.stringify(j.m || []));
-    localStorage.setItem(`userSettings__${targetUser}`, JSON.stringify(j.s || defaultSettings));
+
+    // Nuovo formato (multiutente)
+    if (j && j.v === 1 && j.user && (j.m || j.s)) {
+      const users = loadUsers();
+      const incomingName = (j.user.name || "Utente").trim();
+
+      let target = users.find(u => (u.name || "").toLowerCase() === incomingName.toLowerCase());
+      if (!target) {
+        const id = addUser(incomingName);
+        target = loadUsers().find(u => u.id === id);
+      }
+
+      localStorage.setItem(userKey('movimenti', target.id), JSON.stringify(j.m || []));
+      localStorage.setItem(userKey('userSettings', target.id), JSON.stringify(j.s || defaultSettings));
+      setCurrentUserId(target.id);
+      location.reload();
+      return;
+    }
+
+    // Legacy formato (m/s)
+    localStorage.setItem(userKey('movimenti', currentId()), JSON.stringify(j.m || []));
+    localStorage.setItem(userKey('userSettings', currentId()), JSON.stringify(j.s || defaultSettings));
     location.reload();
   };
   r.readAsText(file);

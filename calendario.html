@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
 <title>iWork - Calendario Orizzontale</title>
-<link href="style.css" rel="stylesheet"/>
+<link href="style.css?v=17" rel="stylesheet"/>
     <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
     <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
     <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
@@ -13,7 +13,13 @@
 </head>
 <body data-page="calendario">
 <header class="ios-navbar">
-<div class="nav-content"><span class="nav-brand">iWork</span><button id="user-pill" class="user-pill" onclick="openUserPicker()" title="Cambia utente">U</button></div>
+<div class="nav-content">
+            <span class="nav-brand">iWork</span>
+            <div class="user-switch" aria-label="Selettore utente">
+                <select id="userSelect" class="user-select" aria-label="Utente"></select>
+                <button id="userAddBtn" class="user-add" aria-label="Aggiungi utente">＋</button>
+            </div>
+        </div>
 </header>
 
 <main class="main-content">
@@ -31,7 +37,7 @@
 </table>
 </div>
 </main>
-<nav class="tab-bar tab-liquid">
+<nav class="tab-bar">
   <div class="liquid-indicator"></div>
 
   <a href="index.html" class="tab-item">🏠<span>Home</span></a>
@@ -40,6 +46,6 @@
   <a href="calendario.html" class="tab-item active">🗓️<span>Calendario</span></a>
 </nav>
 
-<script src="app.js"></script>
+<script src="app.js?v=17"></script>
 </body>
 </html>

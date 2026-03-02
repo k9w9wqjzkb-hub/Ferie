@@ -1,5 +1,5 @@
 // iWork Service Worker (v17) - GitHub Pages friendly
-const CACHE_NAME = 'iwork-cache-v24d';
+const CACHE_NAME = 'iwork-cache-v21';
 
 // Cache solo asset principali (percorsi RELATIVI)
 const ASSETS = [
