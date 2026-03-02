@@ -143,8 +143,8 @@ function initUserPickerUI() {
 }
 
 const defaultSettings = {
-  residuiAP: { ferie: 36.15000, rol: 64.58249, conto: 2.00000 },
-  spettanteAnnuo: { ferie: 216.00000, rol: 62.00000, conto: 0.00000 },
+  residuiAP: { ferie: 0.00000, rol: 0.00000, conto: 0.00000 },
+  spettanteAnnuo: { ferie: 0.00000, rol: 0.00000, conto: 0.00000 },
   dataInizioConteggio: "2026-01-01",
   annoRiferimento: 2026
 };
