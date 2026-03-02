@@ -37,19 +37,30 @@ function userKey(base, id) {
 
 function migrateLegacyIfNeeded(curId) {
   try {
+    // Se ho già gestito la migrazione legacy, esco
     if (localStorage.getItem("iwork:legacyMigrated:v1") === "1") return;
+
     const legacyMov = localStorage.getItem("movimenti");
     const legacySet = localStorage.getItem("userSettings");
+
+    // Se non esiste nulla di legacy, non faccio nulla
+    if (!legacyMov && !legacySet) return;
+
     const hasUserMov = localStorage.getItem(userKey("movimenti", curId));
     const hasUserSet = localStorage.getItem(userKey("userSettings", curId));
 
-    if ((legacyMov || legacySet) && (!hasUserMov && !hasUserSet)) {
+    // Copio SOLO se per l'utente corrente non esiste ancora niente
+    if ((!hasUserMov || hasUserMov === "null") && (!hasUserSet || hasUserSet === "null")) {
       if (legacyMov) localStorage.setItem(userKey("movimenti", curId), legacyMov);
       if (legacySet) localStorage.setItem(userKey("userSettings", curId), legacySet);
-      localStorage.setItem("iwork:legacyMigrated:v1", "1");
     }
+
+    // Importantissimo: dopo il primo giro, blocco ulteriori migrazioni
+    // così un "nuovo utente" non si ritrova dati vecchi.
+    localStorage.setItem("iwork:legacyMigrated:v1", "1");
   } catch(e) {}
 }
+
 
 function ensureUserId() {
   let users = loadUsers();
