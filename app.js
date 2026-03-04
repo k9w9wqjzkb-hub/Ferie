@@ -372,7 +372,6 @@ function renderizzaCalendario(annoOverride) {
         const ferie = movGiorno.filter(m => m.tipo === 'ferie');
         const rol = movGiorno.filter(m => m.tipo === 'rol');
         const conto = movGiorno.filter(m => m.tipo === 'conto');
-        const manc = movGiorno.filter(m => m.tipo === 'mancata');
 
         // Priorità: malattia > ferie aziendali > avis > ferie > rol > conto
         if (mal.length) {
@@ -385,9 +384,6 @@ function renderizzaCalendario(annoOverride) {
         } else if (avis.length) {
           classe = "bg-avis";
           contenuto = "AV";
-        } else if (manc.length) {
-          classe = "bg-mancata";
-          contenuto = "MT";
         } else if (ferie.length) {
           classe = "bg-ferie";
           const ore = sumOre(ferie);
@@ -570,7 +566,6 @@ function renderizzaTabella(page) {
       if (m.tipo === 'ferie_az') label = "FERIE AZ.";
       if (m.tipo === 'malattia') label = "MALATTIA";
       if (m.tipo === 'avis') label = "AVIS";
-      if (m.tipo === 'mancata') label = "MANCATA TIMB.";
 
       const oreNum = Number(m.ore);
       const oreTxt = (m.tipo === 'avis') ? '-' : (Number.isFinite(oreNum) ? oreNum.toFixed(2) + 'h' : '0.00h');
