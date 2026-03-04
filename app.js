@@ -142,6 +142,45 @@ function initUserPickerUI() {
   }
 }
 
+
+function calendarYearStorageKey() {
+  return userKey("calendarYear", currentId());
+}
+
+function getSelectedCalendarYear() {
+  const v = localStorage.getItem(calendarYearStorageKey());
+  const n = Number(v);
+  return Number.isFinite(n) && n > 1900 ? n : null;
+}
+
+function setSelectedCalendarYear(y) {
+  localStorage.setItem(calendarYearStorageKey(), String(y));
+}
+
+function initCalendarioControls() {
+  const sel = document.getElementById("calendarYear");
+  if (!sel) return;
+
+  const mov = getMovimenti();
+  const years = new Set(mov.map(m => new Date(m.data).getFullYear()).filter(y => Number.isFinite(y)));
+  const now = new Date().getFullYear();
+  years.add(now); years.add(now-1); years.add(now+1);
+
+  const sorted = Array.from(years).sort((a,b)=>b-a);
+
+  const prefer = getSelectedCalendarYear() || (getSettings().annoRiferimento || now);
+  sel.innerHTML = sorted.map(y => `<option value="${y}" ${y===prefer?'selected':''}>${y}</option>`).join("");
+
+  sel.onchange = () => {
+    const y = Number(sel.value);
+    if (!Number.isFinite(y)) return;
+    setSelectedCalendarYear(y);
+    renderizzaCalendario(y);
+  };
+}
+
+
+
 const defaultSettings = {
   residuiAP: { ferie: 0.00000, rol: 0.00000, conto: 0.00000 },
   spettanteAnnuo: { ferie: 0.00000, rol: 0.00000, conto: 0.00000 },
@@ -263,7 +302,7 @@ window.onload = () => {
   if (fA) fA.onchange = () => {
     renderizzaTabella(activePage);
     aggiornaInterfaccia(activePage);
-    if (activePage === 'calendario') renderizzaCalendario();
+    if (activePage === 'calendario') { initCalendarioControls(); renderizzaCalendario(); }
   };
   if (fT) fT.onchange = () => {
     renderizzaTabella(activePage);
@@ -284,13 +323,13 @@ window.onload = () => {
 /* =========================
    CALENDARIO (orizzontale)
    ========================= */
-function renderizzaCalendario() {
+function renderizzaCalendario(annoOverride) {
   const tableBody = document.getElementById('calendarBody');
   const tableHeader = document.getElementById('calendarHeader');
   if (!tableBody || !tableHeader) return;
 
   const mesi = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUG", "AGO", "SET", "OTT", "NOV", "DIC"];
-  const anno = (getSettings().annoRiferimento || new Date().getFullYear());
+  const anno = (Number(annoOverride) || getSelectedCalendarYear() || (getSettings().annoRiferimento || new Date().getFullYear()));
 
   const movimentiAnno = getMovimenti().filter(m => new Date(m.data).getFullYear() === anno);
   const festivi = new Set(getFestivitaNazionaliIT(anno));
@@ -333,6 +372,7 @@ function renderizzaCalendario() {
         const ferie = movGiorno.filter(m => m.tipo === 'ferie');
         const rol = movGiorno.filter(m => m.tipo === 'rol');
         const conto = movGiorno.filter(m => m.tipo === 'conto');
+        const manc = movGiorno.filter(m => m.tipo === 'mancata');
 
         // Priorità: malattia > ferie aziendali > avis > ferie > rol > conto
         if (mal.length) {
@@ -345,6 +385,9 @@ function renderizzaCalendario() {
         } else if (avis.length) {
           classe = "bg-avis";
           contenuto = "AV";
+        } else if (manc.length) {
+          classe = "bg-mancata";
+          contenuto = "MT";
         } else if (ferie.length) {
           classe = "bg-ferie";
           const ore = sumOre(ferie);
@@ -527,6 +570,7 @@ function renderizzaTabella(page) {
       if (m.tipo === 'ferie_az') label = "FERIE AZ.";
       if (m.tipo === 'malattia') label = "MALATTIA";
       if (m.tipo === 'avis') label = "AVIS";
+      if (m.tipo === 'mancata') label = "MANCATA TIMB.";
 
       const oreNum = Number(m.ore);
       const oreTxt = (m.tipo === 'avis') ? '-' : (Number.isFinite(oreNum) ? oreNum.toFixed(2) + 'h' : '0.00h');
