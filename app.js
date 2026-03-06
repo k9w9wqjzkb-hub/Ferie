@@ -7,7 +7,9 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-const ORE_GIORNO = 8;
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
 
 
 /* =========================
@@ -175,18 +177,24 @@ function initCalendarioControls() {
     const y = Number(sel.value);
     if (!Number.isFinite(y)) return;
     setSelectedCalendarYear(y);
+    const ct = document.getElementById('calendar-title');
+    if (ct) ct.textContent = `Calendario ${y}`;
     renderizzaCalendario(y);
   };
 }
 
 
 
-const defaultSettings = {
-  residuiAP: { ferie: 0.00000, rol: 0.00000, conto: 0.00000 },
-  spettanteAnnuo: { ferie: 0.00000, rol: 0.00000, conto: 0.00000 },
-  dataInizioConteggio: "2026-01-01",
-  annoRiferimento: 2026
-};
+function makeDefaultSettings() {
+  const y = new Date().getFullYear();
+  return {
+    residuiAP: { ferie: 0, rol: 0, conto: 0 },
+    spettanteAnnuo: { ferie: 0, rol: 0, conto: 0 },
+    dataInizioConteggio: `${y}-01-01`,
+    annoRiferimento: y
+  };
+}
+const defaultSettings = makeDefaultSettings();
 
 /* =========================
    HELPERS (date, festività)
@@ -201,7 +209,17 @@ function todayLocalISO() {
   return isoLocalDate(t.getFullYear(), t.getMonth(), t.getDate());
 }
 function toITDate(iso) {
-  return new Date(iso).toLocaleDateString('it-IT');
+  // Parse as local date to avoid UTC off-by-one (e.g. "2026-06-15" → giugno 14 in UTC+2)
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('it-IT');
+}
+
+function parseLocalDate(iso) {
+  // Restituisce un Date corrispondente alla mezzanotte locale (evita shift UTC)
+  if (!iso) return new Date(NaN);
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d);
 }
 
 // Calcolo Pasqua (Meeus/Jones/Butcher)
@@ -289,7 +307,7 @@ window.onload = () => {
   // Titolo Calendario
   if (activePage === 'calendario') {
     const settings = getSettings();
-    const annoCorrente = settings.annoRiferimento || new Date().getFullYear();
+    const annoCorrente = getSelectedCalendarYear() || settings.annoRiferimento || new Date().getFullYear();
     const ct = document.getElementById('calendar-title');
     if (ct) ct.textContent = `Calendario ${annoCorrente}`;
   }
@@ -297,21 +315,23 @@ window.onload = () => {
 
   popolaFiltroAnni();
 
+  const aggiornaUI = () => {
+    aggiornaInterfaccia(activePage);
+    if (document.getElementById('history-body')) renderizzaTabella(activePage);
+  };
+
   const fA = document.getElementById('filter-anno');
   const fT = document.getElementById('filter-tipo');
   if (fA) fA.onchange = () => {
-    renderizzaTabella(activePage);
-    aggiornaInterfaccia(activePage);
+    aggiornaUI();
     if (activePage === 'calendario') { initCalendarioControls(); renderizzaCalendario(); }
   };
   if (fT) fT.onchange = () => {
-    renderizzaTabella(activePage);
-    aggiornaInterfaccia(activePage);
+    aggiornaUI();
     if (activePage === 'calendario') renderizzaCalendario();
   };
 
-  aggiornaInterfaccia(activePage);
-  if (document.getElementById('history-body')) renderizzaTabella(activePage);
+  aggiornaUI();
   if (activePage === 'calendario') renderizzaCalendario();
 
   setupDate();
@@ -331,16 +351,17 @@ function renderizzaCalendario(annoOverride) {
   const mesi = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUG", "AGO", "SET", "OTT", "NOV", "DIC"];
   const anno = (Number(annoOverride) || getSelectedCalendarYear() || (getSettings().annoRiferimento || new Date().getFullYear()));
 
-  const movimentiAnno = getMovimenti().filter(m => new Date(m.data).getFullYear() === anno);
+  const movimentiAnno = getMovimenti().filter(m => parseLocalDate(m.data).getFullYear() === anno);
   const festivi = new Set(getFestivitaNazionaliIT(anno));
   const patrono = `${anno}-12-07`; // Sant'Ambrogio
 
   tableHeader.innerHTML = '<th class="col-mese">MESE</th>';
   for (let i = 1; i <= 31; i++) tableHeader.innerHTML += `<th>${i}</th>`;
-  tableBody.innerHTML = '';
 
   const sumOre = (arr) => arr.reduce((acc, x) => acc + (Number(x.ore) || 0), 0);
   const hasPian = (arr) => arr.some(x => !!(x.pianificato || x.soloPianificato));
+
+  const rows = [];
 
   mesi.forEach((mese, indexMese) => {
     let riga = `<tr><td class="col-mese">${mese}</td>`;
@@ -366,39 +387,35 @@ function renderizzaCalendario(annoOverride) {
 
       const movGiorno = movimentiAnno.filter(m => m.data === dataISO);
       if (movGiorno.length) {
-        const mal = movGiorno.filter(m => m.tipo === 'malattia');
-        const ferAz = movGiorno.filter(m => m.tipo === 'ferie_az');
-        const avis = movGiorno.filter(m => m.tipo === 'avis');
-        const ferie = movGiorno.filter(m => m.tipo === 'ferie');
-        const rol = movGiorno.filter(m => m.tipo === 'rol');
-        const conto = movGiorno.filter(m => m.tipo === 'conto');
+        const mal    = movGiorno.filter(m => m.tipo === 'malattia');
+        const ferAz  = movGiorno.filter(m => m.tipo === 'ferie_az');
+        const avis   = movGiorno.filter(m => m.tipo === 'avis');
+        const ferie  = movGiorno.filter(m => m.tipo === 'ferie');
+        const rol    = movGiorno.filter(m => m.tipo === 'rol');
+        const conto  = movGiorno.filter(m => m.tipo === 'conto');
 
         // Priorità: malattia > ferie aziendali > avis > ferie > rol > conto
         if (mal.length) {
           classe = "bg-malattia";
           contenuto = "M";
         } else if (ferAz.length) {
-          classe = "bg-ferie-az";
+          classe = "bg-ferie-az" + (hasPian(ferAz) ? " is-pian" : "");
           contenuto = "AZ";
-          if (hasPian(ferAz)) classe += " is-pian";
         } else if (avis.length) {
           classe = "bg-avis";
           contenuto = "AV";
         } else if (ferie.length) {
-          classe = "bg-ferie";
           const ore = sumOre(ferie);
+          classe = "bg-ferie" + (hasPian(ferie) ? " is-pian" : "");
           contenuto = (Math.abs(ore - 8) < 0.001) ? "F" : String(ore % 1 === 0 ? ore.toFixed(0) : ore.toFixed(1)).replace('.', ',');
-          if (hasPian(ferie)) classe += " is-pian";
         } else if (rol.length) {
-          classe = "bg-rol";
           const ore = sumOre(rol);
+          classe = "bg-rol" + (hasPian(rol) ? " is-pian" : "");
           contenuto = String(ore % 1 === 0 ? ore.toFixed(0) : ore.toFixed(1)).replace('.', ',');
-          if (hasPian(rol)) classe += " is-pian";
         } else if (conto.length) {
-          classe = "bg-conto";
           const ore = sumOre(conto);
+          classe = "bg-conto" + (hasPian(conto) ? " is-pian" : "");
           contenuto = String(ore % 1 === 0 ? ore.toFixed(0) : ore.toFixed(1)).replace('.', ',');
-          if (hasPian(conto)) classe += " is-pian";
         }
       }
 
@@ -406,8 +423,10 @@ function renderizzaCalendario(annoOverride) {
     }
 
     riga += `</tr>`;
-    tableBody.innerHTML += riga;
+    rows.push(riga);
   });
+
+  tableBody.innerHTML = rows.join('');
 }
 
 /* =========================
@@ -633,13 +652,13 @@ function azzeraGoduti() {
 
   let s = getSettings();
   const mov = getMovimenti();
-  const dInizio = new Date(s.dataInizioConteggio);
+  const dInizio = parseLocalDate(s.dataInizioConteggio);
 
   ['ferie', 'rol', 'conto'].forEach(cat => {
     let god = 0, mat = 0;
 
     mov.forEach(m => {
-      if (new Date(m.data) >= dInizio) {
+      if (parseLocalDate(m.data) >= dInizio) {
         const o = Number(m.ore) || 0;
         if (m.tipo === 'mat_' + cat) mat += o;
         else if (m.tipo === cat || (cat === 'ferie' && m.tipo === 'ferie_az')) {
@@ -707,7 +726,7 @@ function saveData() {
     }
   }
 
-  m.push({ tipo: t, ore: o, data: d, note, pianificato, id: Date.now() });
+  m.push({ tipo: t, ore: o, data: d, note, pianificato, id: genId() });
   setMovimenti(m);
   location.reload();
 }
