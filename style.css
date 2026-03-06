@@ -175,10 +175,62 @@ body {
 /* Settings panel */
 #settings-panel {
   background: rgba(255,255,255,0.06) !important;
-  border: 1px solid rgba(255,255,255,0.10) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
   color: #fff;
 }
-#settings-panel h3 { color: #fff; }
+#settings-panel h3 { color: #fff; margin-top: 0; }
+#settings-panel label { color: rgba(255,255,255,0.7); font-size: 9px; }
+#settings-panel input[type="number"] {
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: #fff;
+  padding: 4px 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Consuntivo sheet scroll area */
+.sheet-scroll {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Consuntivo table */
+.consuntivo-container table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: rgba(255,255,255,0.92);
+}
+.consuntivo-container thead tr {
+  background: rgba(255,255,255,0.08) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.12) !important;
+}
+.consuntivo-container th {
+  padding: 10px;
+  color: rgba(255,255,255,0.6);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.consuntivo-container tbody tr {
+  border-bottom: 0.5px solid rgba(255,255,255,0.08);
+}
+.consuntivo-container tbody td {
+  padding: 12px 10px;
+  color: rgba(255,255,255,0.92);
+}
+
+/* Export/Import buttons dentro lo sheet */
+#ios-sheet .ios-btn-white {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: var(--blue);
+}
+#ios-sheet .ios-btn-blue {
+  margin-top: 10px;
+}
 
 /* ── BADGES ───────────────────────────────────────────── */
 .badge-ferie      { background: #E3F2FD; color: #0D47A1; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
