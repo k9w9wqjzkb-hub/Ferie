@@ -901,6 +901,20 @@ body[data-page="calendario"] .dashboard-header{ padding-bottom: 8px; }
 }
 #settings-panel h3 { color: #fff; }
 
+/* Consuntivo table: testo nero su sfondo chiaro */
+.consuntivo-container table thead tr {
+  background: #F9F9F9 !important;
+}
+.consuntivo-container table thead th {
+  color: #000 !important;
+}
+.consuntivo-container table tbody tr {
+  background: #fff !important;
+}
+.consuntivo-container table tbody td {
+  color: #000 !important;
+}
+
 
 
 /* === USER SWITCH === */
