@@ -9,6 +9,21 @@ if ('serviceWorker' in navigator) {
 
 const ORE_GIORNO = 8;
 
+/* =========================
+   TEMA (light / dark / auto)
+   ========================= */
+function applyTheme() {
+  const t = localStorage.getItem('iwork:theme') || 'auto';
+  document.documentElement.setAttribute('data-theme', t);
+}
+function setTheme(t) {
+  localStorage.setItem('iwork:theme', t);
+  applyTheme();
+  // riapri settings per aggiornare i bottoni
+  const p = document.getElementById('settings-panel');
+  if (p && p.style.display === 'block') { p.style.display='none'; toggleSettings(); }
+}
+applyTheme();
 
 /* =========================
    MULTI-UTENTE (v1)
@@ -482,11 +497,7 @@ function aggiornaInterfaccia(page) {
 
     if (m.tipo === 'malattia') { calcoli.malattia += ore; return; }
 
-    if (m.tipo.startsWith('mat_')) {
-      const cat = m.tipo.split('_')[1];
-      if (calcoli[cat]) calcoli[cat].spet += ore;
-      return;
-    }
+    if (m.tipo.startsWith('mat_')) return; // maturazioni rimosse
 
     if (m.tipo === 'avis') return;
 
@@ -546,6 +557,66 @@ function aggiornaInterfaccia(page) {
       </tr>`;
     });
   }
+
+  // Grafico a barre nella dashboard
+  renderChart(calcoli);
+}
+
+/* =========================
+   GRAFICO A BARRE (SVG, zero dipendenze)
+   ========================= */
+function renderChart(calcoli) {
+  const wrap = document.getElementById('dashboard-chart');
+  if (!wrap) return;
+
+  const items = [
+    { label: 'Ferie',    color: '#34C759', god: calcoli.ferie.god, tot: calcoli.ferie.ap + calcoli.ferie.spet, pian: calcoli.ferie.pian },
+    { label: 'ROL',      color: '#FFCC00', god: calcoli.rol.god,   tot: calcoli.rol.ap   + calcoli.rol.spet,   pian: calcoli.rol.pian },
+    { label: 'B.Ore',    color: '#64D2FF', god: calcoli.conto.god, tot: calcoli.conto.ap + calcoli.conto.spet, pian: calcoli.conto.pian },
+  ];
+
+  const fmtH = h => (h/8).toFixed(1).replace('.',',') + 'gg';
+  const BAR_H = 22, GAP = 36, PAD_L = 52, PAD_R = 16, W = wrap.clientWidth || 320;
+  const barW = W - PAD_L - PAD_R;
+  const maxVal = Math.max(...items.map(i => i.tot), 1);
+  const totalH = items.length * (BAR_H + GAP);
+
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="${totalH}" viewBox="0 0 ${W} ${totalH}">`;
+
+  items.forEach((item, i) => {
+    const y = i * (BAR_H + GAP);
+    const godW  = Math.max(0, (item.god  / maxVal) * barW);
+    const pianW = Math.max(0, (item.pian / maxVal) * barW);
+    const totW  = Math.max(0, (item.tot  / maxVal) * barW);
+
+    // Label sinistra
+    svg += `<text x="${PAD_L - 6}" y="${y + BAR_H/2 + 4}" text-anchor="end" font-size="11" font-weight="700" fill="currentColor" opacity="0.75">${item.label}</text>`;
+
+    // Sfondo barra (totale disponibile)
+    svg += `<rect x="${PAD_L}" y="${y}" width="${totW}" height="${BAR_H}" rx="6" fill="${item.color}" opacity="0.18"/>`;
+
+    // Barra goduto
+    if (godW > 0)
+      svg += `<rect x="${PAD_L}" y="${y}" width="${godW}" height="${BAR_H}" rx="6" fill="${item.color}" opacity="0.9"/>`;
+
+    // Barra pianificato (sovrapposta, tratteggiata)
+    if (pianW > 0)
+      svg += `<rect x="${PAD_L + godW}" y="${y}" width="${Math.min(pianW, barW - godW)}" height="${BAR_H}" rx="6" fill="${item.color}" opacity="0.45"/>`;
+
+    // Valore a destra
+    const saldo = item.tot - item.god;
+    svg += `<text x="${PAD_L + totW + 6}" y="${y + BAR_H/2 + 4}" font-size="10" font-weight="700" fill="currentColor" opacity="0.70">${fmtH(saldo)}</text>`;
+  });
+
+  // Legenda mini
+  const ly = totalH - 10;
+  svg += `<circle cx="${PAD_L}" cy="${ly}" r="4" fill="#34C759" opacity="0.9"/>`;
+  svg += `<text x="${PAD_L+8}" y="${ly+4}" font-size="9" fill="currentColor" opacity="0.6">Goduto</text>`;
+  svg += `<circle cx="${PAD_L+58}" cy="${ly}" r="4" fill="#aaa" opacity="0.7"/>`;
+  svg += `<text x="${PAD_L+66}" y="${ly+4}" font-size="9" fill="currentColor" opacity="0.6">Pianif.</text>`;
+
+  svg += '</svg>';
+  wrap.innerHTML = svg;
 }
 
 /* =========================
@@ -567,30 +638,26 @@ function renderizzaTabella(page) {
     filtered = filtered.filter(m =>
       m.tipo === fT ||
       (fT === 'ferie' && m.tipo === 'ferie_az') ||
-      (fT === 'maturazione' && m.tipo.startsWith('mat_'))
     );
   }
 
-  tbody.innerHTML = filtered
-    .sort((a, b) => new Date(b.data) - new Date(a.data))
-    .map(m => {
-      let label = m.tipo.replace('mat_', 'MAT. ').toUpperCase();
+  const rows = filtered.sort((a, b) => new Date(b.data) - new Date(a.data));
+  tbody.innerHTML = rows.map(m => {
+      let label = m.tipo.toUpperCase();
       if (m.tipo === 'ferie_az') label = "FERIE AZ.";
       if (m.tipo === 'malattia') label = "MALATTIA";
       if (m.tipo === 'avis') label = "AVIS";
 
       const oreNum = Number(m.ore);
       const oreTxt = (m.tipo === 'avis') ? '-' : (Number.isFinite(oreNum) ? oreNum.toFixed(2) + 'h' : '0.00h');
-
-      const badgeClass = m.tipo.startsWith('mat_') ? 'maturazione' : m.tipo;
-
+      const badgeClass = m.tipo;
       const isPian = !!(m.pianificato || m.soloPianificato) && canHavePianificato(m.tipo);
       const pianTxt = isPian ? ' <span style="color:#8E8E93; font-weight:700;">(P)</span>' : '';
 
-      return `<tr style="border-bottom:0.5px solid #EEE;">
-        <td style="padding:12px;">${toITDate(m.data)}</td>
-        <td><span class="badge-${badgeClass}">${label}</span>${pianTxt}</td>
-        <td style="font-weight:700;">${oreTxt}</td>
+      return `<tr class="swipe-row" data-id="${m.id}" style="border-bottom:0.5px solid #EEE; position:relative; overflow:hidden; transition: transform 0.25s ease;">
+        <td style="padding:12px; pointer-events:none;">${toITDate(m.data)}</td>
+        <td style="pointer-events:none;"><span class="badge-${badgeClass}">${label}</span>${pianTxt}</td>
+        <td style="font-weight:700; pointer-events:none;">${oreTxt}</td>
         <td class="azioni-cell">
           <div class="azioni-wrap">
             <button class="btn-azione" onclick="modifica(${m.id})" aria-label="Modifica">✏️</button>
@@ -599,8 +666,48 @@ function renderizzaTabella(page) {
           </div>
         </td>
       </tr>`;
-    })
-    .join('');
+    }).join('');
+
+  // Swipe-to-delete su ogni riga
+  tbody.querySelectorAll('.swipe-row').forEach(row => {
+    let startX = 0, curX = 0, swiping = false, confirmed = false;
+    const THRESHOLD = 80;
+
+    row.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      curX = startX;
+      swiping = true;
+      confirmed = false;
+      row.style.transition = 'none';
+    }, { passive: true });
+
+    row.addEventListener('touchmove', e => {
+      if (!swiping) return;
+      curX = e.touches[0].clientX;
+      const dx = Math.min(0, curX - startX);
+      row.style.transform = `translateX(${dx}px)`;
+      // colore di fondo rosso al raggiungimento soglia
+      row.style.background = dx < -THRESHOLD ? 'rgba(255,59,48,0.15)' : '';
+    }, { passive: true });
+
+    row.addEventListener('touchend', () => {
+      if (!swiping) return;
+      swiping = false;
+      const dx = curX - startX;
+      row.style.transition = 'transform 0.3s ease, background 0.3s ease';
+      if (dx < -THRESHOLD) {
+        // vibrazione haptic
+        if (navigator.vibrate) navigator.vibrate(40);
+        // animazione uscita + elimina
+        row.style.transform = 'translateX(-100%)';
+        row.style.opacity = '0';
+        setTimeout(() => elimina(Number(row.dataset.id)), 280);
+      } else {
+        row.style.transform = '';
+        row.style.background = '';
+      }
+    });
+  });
 }
 
 /* =========================
@@ -648,13 +755,12 @@ function azzeraGoduti() {
   const dInizio = new Date(s.dataInizioConteggio);
 
   ['ferie', 'rol', 'conto'].forEach(cat => {
-    let god = 0, mat = 0;
+    let god = 0;
 
     mov.forEach(m => {
       if (new Date(m.data) >= dInizio) {
         const o = Number(m.ore) || 0;
-        if (m.tipo === 'mat_' + cat) mat += o;
-        else if (m.tipo === cat || (cat === 'ferie' && m.tipo === 'ferie_az')) {
+        if (m.tipo === cat || (cat === 'ferie' && m.tipo === 'ferie_az')) {
           // consolido solo i GODUTI (non pianificati)
           const isPian = !!(m.pianificato || m.soloPianificato);
           if (!isPian) god += o;
@@ -662,7 +768,7 @@ function azzeraGoduti() {
       }
     });
 
-    s.residuiAP[cat] = (s.residuiAP[cat] + s.spettanteAnnuo[cat] + mat) - god;
+    s.residuiAP[cat] = (s.residuiAP[cat] + s.spettanteAnnuo[cat]) - god;
     // mantiene lo spettanteAnnuo configurato dall'utente; azzera solo il conto ore
     s.spettanteAnnuo[cat] = (cat === 'conto') ? 0 : s.spettanteAnnuo[cat];
   });
@@ -676,20 +782,30 @@ function azzeraGoduti() {
    SAVE / AUTO ORE
    - usa la stessa modale per inserire e modificare
    ========================= */
+/* =========================
+   TOAST NOTIFICATION
+   ========================= */
+function showToast(msg, type = 'success') {
+  let toast = document.getElementById('iw-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'iw-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.className = 'iw-toast iw-toast-' + type + ' iw-toast-show';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toast.classList.remove('iw-toast-show'), 2400);
+}
+
 function saveData() {
   let t = document.getElementById('in-tipo')?.value;
   let o = parseFloat(document.getElementById('in-ore')?.value);
   const d = document.getElementById('in-data')?.value;
   const note = document.getElementById('in-note') ? (document.getElementById('in-note').value || '') : '';
 
-  if (!d) return alert('Data mancante');
-  if (!t) return alert('Tipo mancante');
-
-  if (t === 'maturazione') {
-    const res = prompt('Destinazione? (ferie, rol, conto)');
-    if (['ferie', 'rol', 'conto'].includes(res)) t = 'mat_' + res;
-    else return;
-  }
+  if (!d) return showToast('Data mancante', 'error');
+  if (!t) return showToast('Tipo mancante', 'error');
 
   // Validazione ore: AVIS può essere 0, gli altri > 0
   const oreRichieste = (t !== 'avis');
@@ -715,14 +831,16 @@ function saveData() {
       // pulizia retrocompatibilità
       delete m[idx].soloPianificato;
       setMovimenti(m);
-      location.reload();
+      showToast('Record aggiornato ✓');
+      setTimeout(() => location.reload(), 400);
       return;
     }
   }
 
   m.push({ tipo: t, ore: o, data: d, note, pianificato, id: Date.now() });
   setMovimenti(m);
-  location.reload();
+  showToast('Record salvato ✓');
+  setTimeout(() => location.reload(), 400);
 }
 
 function gestisciAutoOre() {
@@ -774,6 +892,19 @@ function toggleSettings() {
       </div>`;
     });
 
+    // theme switcher
+    const savedTheme = localStorage.getItem('iwork:theme') || 'auto';
+    c.innerHTML += `
+      <div style="margin-top:14px; border-top:1px solid rgba(255,255,255,0.10); padding-top:14px;">
+        <div style="font-weight:700; font-size:12px; color:#007AFF; margin-bottom:8px;">TEMA</div>
+        <div style="display:flex; gap:8px;">
+          ${['auto','light','dark'].map(th => `
+            <button onclick="setTheme('${th}')" style="flex:1; padding:10px 0; border-radius:10px; border:none; font-weight:700; font-size:12px; cursor:pointer;
+              background:${savedTheme===th?'var(--blue)':'rgba(255,255,255,0.10)'}; color:${savedTheme===th?'#fff':'inherit'};">
+              ${th==='auto'?'⚙️ Auto':th==='light'?'☀️ Chiaro':'🌙 Scuro'}
+            </button>`).join('')}
+        </div>
+      </div>`;
     c.innerHTML += `<button onclick="azzeraGoduti()" style="width:100%; background:#FF3B30; color:white; border:none; padding:12px; border-radius:8px; font-weight:700; margin-top:10px;">CONSOLIDA E AZZERA</button>`;
   }
 }
@@ -803,7 +934,7 @@ function info(id) {
   const r = m.find(x => x.id === id);
   if (!r) return alert('Record non trovato');
 
-  let label = r.tipo.replace('mat_', 'MAT. ').toUpperCase();
+  let label = r.tipo.toUpperCase();
   if (r.tipo === 'ferie_az') label = 'FERIE AZ.';
   if (r.tipo === 'malattia') label = 'MALATTIA';
   if (r.tipo === 'avis') label = 'AVIS';

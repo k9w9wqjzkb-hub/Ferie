@@ -584,3 +584,86 @@ body[data-page="calendario"] .dashboard-header { padding-bottom: 8px; }
     border-color: rgba(255,255,255,0.16);
   }
 }
+
+/* =========================
+   TOAST NOTIFICATION
+   ========================= */
+.iw-toast {
+  position: fixed;
+  bottom: calc(100px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(30,30,34,0.92);
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 9999;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+}
+.iw-toast-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.iw-toast-error  { background: rgba(255,59,48,0.92); }
+.iw-toast-success{ background: rgba(30,30,34,0.92); }
+
+/* =========================
+   ANIMAZIONE RIGHE TABELLA
+   ========================= */
+@keyframes rowIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.swipe-row {
+  animation: rowIn 0.28s ease both;
+}
+/* delay progressivo sulle prime 10 righe */
+.swipe-row:nth-child(1)  { animation-delay: 0.00s; }
+.swipe-row:nth-child(2)  { animation-delay: 0.04s; }
+.swipe-row:nth-child(3)  { animation-delay: 0.08s; }
+.swipe-row:nth-child(4)  { animation-delay: 0.12s; }
+.swipe-row:nth-child(5)  { animation-delay: 0.16s; }
+.swipe-row:nth-child(6)  { animation-delay: 0.18s; }
+.swipe-row:nth-child(7)  { animation-delay: 0.20s; }
+.swipe-row:nth-child(8)  { animation-delay: 0.22s; }
+.swipe-row:nth-child(9)  { animation-delay: 0.23s; }
+.swipe-row:nth-child(10) { animation-delay: 0.24s; }
+
+/* =========================
+   TEMA MANUALE (data-theme)
+   ========================= */
+[data-theme="light"] {
+  --bg: #F2F2F7;
+  --card-bg: #FFFFFF;
+  color-scheme: light;
+}
+[data-theme="light"] body                { background: var(--bg); color: #000; }
+[data-theme="light"] .ios-navbar         { background: rgba(255,255,255,0.8); border-bottom: 0.5px solid rgba(0,0,0,0.1); }
+[data-theme="light"] .ios-card           { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+[data-theme="light"] .ios-card-btn       { background: #fff; color: #000; }
+[data-theme="light"] .tab-bar            { background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22); }
+[data-theme="light"] .liquid-indicator   { background: rgba(255,255,255,0.30); border-color: rgba(255,255,255,0.40); }
+
+[data-theme="dark"] {
+  --bg: #0B0B0F;
+  --card-bg: rgba(255,255,255,0.06);
+  color-scheme: dark;
+}
+[data-theme="dark"] body                { background: var(--bg); color: rgba(235,235,245,0.92); }
+[data-theme="dark"] .ios-navbar         { background: rgba(18,18,20,0.70); border-bottom: 0.5px solid rgba(255,255,255,0.10); }
+[data-theme="dark"] .ios-card           { background: rgba(255,255,255,0.06); box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+[data-theme="dark"] .ios-card-btn       { background: rgba(255,255,255,0.06); color: rgba(235,235,245,0.92); }
+[data-theme="dark"] .tab-bar            { background: rgba(20,20,22,0.55); border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 18px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.16); }
+[data-theme="dark"] .liquid-indicator   { background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.16); }
+[data-theme="dark"] .user-select,
+[data-theme="dark"] .user-add           { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.10); }
+[data-theme="dark"] .control-select     { background: rgba(255,255,255,0.10); color: rgba(255,255,255,0.92); }
+[data-theme="dark"] .legend-item        { background: rgba(255,255,255,0.06); }
