@@ -7,9 +7,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-function genId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-}
+const ORE_GIORNO = 8;
 
 
 /* =========================
@@ -177,24 +175,18 @@ function initCalendarioControls() {
     const y = Number(sel.value);
     if (!Number.isFinite(y)) return;
     setSelectedCalendarYear(y);
-    const ct = document.getElementById('calendar-title');
-    if (ct) ct.textContent = `Calendario ${y}`;
     renderizzaCalendario(y);
   };
 }
 
 
 
-function makeDefaultSettings() {
-  const y = new Date().getFullYear();
-  return {
-    residuiAP: { ferie: 0, rol: 0, conto: 0 },
-    spettanteAnnuo: { ferie: 0, rol: 0, conto: 0 },
-    dataInizioConteggio: `${y}-01-01`,
-    annoRiferimento: y
-  };
-}
-const defaultSettings = makeDefaultSettings();
+const defaultSettings = {
+  residuiAP: { ferie: 0.00000, rol: 0.00000, conto: 0.00000 },
+  spettanteAnnuo: { ferie: 0.00000, rol: 0.00000, conto: 0.00000 },
+  dataInizioConteggio: "2026-01-01",
+  annoRiferimento: 2026
+};
 
 /* =========================
    HELPERS (date, festività)
@@ -209,17 +201,7 @@ function todayLocalISO() {
   return isoLocalDate(t.getFullYear(), t.getMonth(), t.getDate());
 }
 function toITDate(iso) {
-  // Parse as local date to avoid UTC off-by-one (e.g. "2026-06-15" → giugno 14 in UTC+2)
-  if (!iso) return '';
-  const [y, m, d] = iso.split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString('it-IT');
-}
-
-function parseLocalDate(iso) {
-  // Restituisce un Date corrispondente alla mezzanotte locale (evita shift UTC)
-  if (!iso) return new Date(NaN);
-  const [y, m, d] = iso.split('-').map(Number);
-  return new Date(y, m - 1, d);
+  return new Date(iso).toLocaleDateString('it-IT');
 }
 
 // Calcolo Pasqua (Meeus/Jones/Butcher)
@@ -307,7 +289,7 @@ window.onload = () => {
   // Titolo Calendario
   if (activePage === 'calendario') {
     const settings = getSettings();
-    const annoCorrente = getSelectedCalendarYear() || settings.annoRiferimento || new Date().getFullYear();
+    const annoCorrente = settings.annoRiferimento || new Date().getFullYear();
     const ct = document.getElementById('calendar-title');
     if (ct) ct.textContent = `Calendario ${annoCorrente}`;
   }
@@ -315,23 +297,21 @@ window.onload = () => {
 
   popolaFiltroAnni();
 
-  const aggiornaUI = () => {
-    aggiornaInterfaccia(activePage);
-    if (document.getElementById('history-body')) renderizzaTabella(activePage);
-  };
-
   const fA = document.getElementById('filter-anno');
   const fT = document.getElementById('filter-tipo');
   if (fA) fA.onchange = () => {
-    aggiornaUI();
+    renderizzaTabella(activePage);
+    aggiornaInterfaccia(activePage);
     if (activePage === 'calendario') { initCalendarioControls(); renderizzaCalendario(); }
   };
   if (fT) fT.onchange = () => {
-    aggiornaUI();
+    renderizzaTabella(activePage);
+    aggiornaInterfaccia(activePage);
     if (activePage === 'calendario') renderizzaCalendario();
   };
 
-  aggiornaUI();
+  aggiornaInterfaccia(activePage);
+  if (document.getElementById('history-body')) renderizzaTabella(activePage);
   if (activePage === 'calendario') renderizzaCalendario();
 
   setupDate();
@@ -351,17 +331,16 @@ function renderizzaCalendario(annoOverride) {
   const mesi = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUG", "AGO", "SET", "OTT", "NOV", "DIC"];
   const anno = (Number(annoOverride) || getSelectedCalendarYear() || (getSettings().annoRiferimento || new Date().getFullYear()));
 
-  const movimentiAnno = getMovimenti().filter(m => parseLocalDate(m.data).getFullYear() === anno);
+  const movimentiAnno = getMovimenti().filter(m => new Date(m.data).getFullYear() === anno);
   const festivi = new Set(getFestivitaNazionaliIT(anno));
   const patrono = `${anno}-12-07`; // Sant'Ambrogio
 
   tableHeader.innerHTML = '<th class="col-mese">MESE</th>';
   for (let i = 1; i <= 31; i++) tableHeader.innerHTML += `<th>${i}</th>`;
+  tableBody.innerHTML = '';
 
   const sumOre = (arr) => arr.reduce((acc, x) => acc + (Number(x.ore) || 0), 0);
   const hasPian = (arr) => arr.some(x => !!(x.pianificato || x.soloPianificato));
-
-  const rows = [];
 
   mesi.forEach((mese, indexMese) => {
     let riga = `<tr><td class="col-mese">${mese}</td>`;
@@ -387,35 +366,39 @@ function renderizzaCalendario(annoOverride) {
 
       const movGiorno = movimentiAnno.filter(m => m.data === dataISO);
       if (movGiorno.length) {
-        const mal    = movGiorno.filter(m => m.tipo === 'malattia');
-        const ferAz  = movGiorno.filter(m => m.tipo === 'ferie_az');
-        const avis   = movGiorno.filter(m => m.tipo === 'avis');
-        const ferie  = movGiorno.filter(m => m.tipo === 'ferie');
-        const rol    = movGiorno.filter(m => m.tipo === 'rol');
-        const conto  = movGiorno.filter(m => m.tipo === 'conto');
+        const mal = movGiorno.filter(m => m.tipo === 'malattia');
+        const ferAz = movGiorno.filter(m => m.tipo === 'ferie_az');
+        const avis = movGiorno.filter(m => m.tipo === 'avis');
+        const ferie = movGiorno.filter(m => m.tipo === 'ferie');
+        const rol = movGiorno.filter(m => m.tipo === 'rol');
+        const conto = movGiorno.filter(m => m.tipo === 'conto');
 
         // Priorità: malattia > ferie aziendali > avis > ferie > rol > conto
         if (mal.length) {
           classe = "bg-malattia";
           contenuto = "M";
         } else if (ferAz.length) {
-          classe = "bg-ferie-az" + (hasPian(ferAz) ? " is-pian" : "");
+          classe = "bg-ferie-az";
           contenuto = "AZ";
+          if (hasPian(ferAz)) classe += " is-pian";
         } else if (avis.length) {
           classe = "bg-avis";
           contenuto = "AV";
         } else if (ferie.length) {
+          classe = "bg-ferie";
           const ore = sumOre(ferie);
-          classe = "bg-ferie" + (hasPian(ferie) ? " is-pian" : "");
           contenuto = (Math.abs(ore - 8) < 0.001) ? "F" : String(ore % 1 === 0 ? ore.toFixed(0) : ore.toFixed(1)).replace('.', ',');
+          if (hasPian(ferie)) classe += " is-pian";
         } else if (rol.length) {
+          classe = "bg-rol";
           const ore = sumOre(rol);
-          classe = "bg-rol" + (hasPian(rol) ? " is-pian" : "");
           contenuto = String(ore % 1 === 0 ? ore.toFixed(0) : ore.toFixed(1)).replace('.', ',');
+          if (hasPian(rol)) classe += " is-pian";
         } else if (conto.length) {
+          classe = "bg-conto";
           const ore = sumOre(conto);
-          classe = "bg-conto" + (hasPian(conto) ? " is-pian" : "");
           contenuto = String(ore % 1 === 0 ? ore.toFixed(0) : ore.toFixed(1)).replace('.', ',');
+          if (hasPian(conto)) classe += " is-pian";
         }
       }
 
@@ -423,10 +406,8 @@ function renderizzaCalendario(annoOverride) {
     }
 
     riga += `</tr>`;
-    rows.push(riga);
+    tableBody.innerHTML += riga;
   });
-
-  tableBody.innerHTML = rows.join('');
 }
 
 /* =========================
@@ -544,13 +525,12 @@ function aggiornaInterfaccia(page) {
     ['ferie', 'rol', 'conto'].forEach(id => {
       const c = calcoli[id];
       const saldo = c.ap + c.spet - c.god;
-      const saldoColor = saldo < 0 ? 'color:#FF3B30; font-weight:700;' : 'font-weight:700;';
       tbody.innerHTML += `<tr>
-        <td style="padding:10px 10px; font-weight:600;">${id.toUpperCase()}</td>
-        <td style="text-align:center; padding:10px;">${c.ap.toFixed(2)}</td>
-        <td style="text-align:center; padding:10px;">${c.spet.toFixed(2)}</td>
-        <td style="text-align:center; padding:10px;">${c.god.toFixed(2)}</td>
-        <td style="text-align:right; padding:10px; ${saldoColor}">${saldo.toFixed(2)}</td>
+        <td style="padding:10px;">${id.toUpperCase()}</td>
+        <td style="text-align:center;">${c.ap.toFixed(2)}</td>
+        <td style="text-align:center;">${c.spet.toFixed(2)}</td>
+        <td style="text-align:center;">${c.god.toFixed(2)}</td>
+        <td style="text-align:right; font-weight:700;">${saldo.toFixed(2)}</td>
       </tr>`;
     });
   }
@@ -653,13 +633,13 @@ function azzeraGoduti() {
 
   let s = getSettings();
   const mov = getMovimenti();
-  const dInizio = parseLocalDate(s.dataInizioConteggio);
+  const dInizio = new Date(s.dataInizioConteggio);
 
   ['ferie', 'rol', 'conto'].forEach(cat => {
     let god = 0, mat = 0;
 
     mov.forEach(m => {
-      if (parseLocalDate(m.data) >= dInizio) {
+      if (new Date(m.data) >= dInizio) {
         const o = Number(m.ore) || 0;
         if (m.tipo === 'mat_' + cat) mat += o;
         else if (m.tipo === cat || (cat === 'ferie' && m.tipo === 'ferie_az')) {
@@ -727,7 +707,7 @@ function saveData() {
     }
   }
 
-  m.push({ tipo: t, ore: o, data: d, note, pianificato, id: genId() });
+  m.push({ tipo: t, ore: o, data: d, note, pianificato, id: Date.now() });
   setMovimenti(m);
   location.reload();
 }
@@ -764,26 +744,24 @@ function toggleSettings() {
     const c = document.getElementById('settings-inputs');
     if (!c) return;
 
-    c.innerHTML = ['ferie', 'rol', 'conto'].map(id => `
-      <div class="settings-row">
-        <div class="settings-cat-title">${id.toUpperCase()}</div>
-        <div class="settings-fields">
-          <div class="settings-field">
-            <label>Residui AP</label>
-            <input type="number" id="set-ap-${id}" value="${s.residuiAP[id]}" step="0.01">
+    c.innerHTML = '';
+    ['ferie', 'rol', 'conto'].forEach(id => {
+      c.innerHTML += `<div style="margin-bottom:10px; border-bottom:1px solid rgba(0,0,0,0.06); padding-bottom:10px;">
+        <div style="font-weight:700; font-size:12px; color:#007AFF;">${id.toUpperCase()}</div>
+        <div style="display:flex; gap:8px;">
+          <div style="flex:1;">
+            <label style="font-size:9px;">RES. AP</label>
+            <input type="number" id="set-ap-${id}" value="${s.residuiAP[id]}" step="0.00001" style="width:100%;">
           </div>
-          <div class="settings-field">
-            <label>Spettante</label>
-            <input type="number" id="set-spet-${id}" value="${s.spettanteAnnuo[id]}" step="0.01">
+          <div style="flex:1;">
+            <label style="font-size:9px;">SPET.</label>
+            <input type="number" id="set-spet-${id}" value="${s.spettanteAnnuo[id]}" step="0.00001" style="width:100%;">
           </div>
         </div>
-      </div>`).join('');
+      </div>`;
+    });
 
-    c.innerHTML += `<button onclick="azzeraGoduti()"
-      style="width:100%;background:#FF3B30;color:#fff;border:none;padding:13px;
-             border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;margin-top:8px;">
-      🔄 CONSOLIDA E AZZERA
-    </button>`;
+    c.innerHTML += `<button onclick="azzeraGoduti()" style="width:100%; background:#FF3B30; color:white; border:none; padding:12px; border-radius:8px; font-weight:700; margin-top:10px;">CONSOLIDA E AZZERA</button>`;
   }
 }
 
@@ -1000,4 +978,3 @@ function initLiquidTabBar() {
     });
   });
 }
-
