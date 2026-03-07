@@ -1,67 +1,71 @@
 <!DOCTYPE html>
+
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>iWork - Calendario</title>
-  <link rel="stylesheet" href="style.css?v=19">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>iWork - Calendario Orizzontale</title>
+<link href="style.css?v=17" rel="stylesheet"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
 </head>
 <body data-page="calendario">
+<header class="ios-navbar">
+<div class="nav-content">
+            <span class="nav-brand">iWork</span>
+            <div class="user-switch" aria-label="Selettore utente">
+                <select id="userSelect" class="user-select" aria-label="Utente"></select>
+                <button id="userAddBtn" class="user-add" aria-label="Aggiungi utente">＋</button>
+            </div>
+        </div>
+</header>
 
-  <header class="ios-navbar">
-    <div class="nav-content">
-      <span class="nav-brand">iWork</span>
-      <div class="user-switch">
-        <select id="userSelect" class="user-select" aria-label="Utente"></select>
-        <button id="userAddBtn" class="user-add" aria-label="Aggiungi utente">＋</button>
-      </div>
-    </div>
-  </header>
+<main class="main-content">
+<header class="dashboard-header">
+<p class="date-subtitle" id="current-date"></p>
+<h1 class="large-title" id="calendar-title">Calendario</h1>
 
-  <main class="main-content">
-    <header class="dashboard-header">
-      <p class="date-subtitle" id="current-date"></p>
-      <h1 class="large-title" id="calendar-title">Calendario</h1>
-    </header>
+<div class="calendar-controls">
+  <div class="calendar-year">
+    <label class="control-label" for="calendarYear">Anno</label>
+    <select id="calendarYear" class="control-select" aria-label="Seleziona anno"></select>
+  </div>
 
-    <div class="calendar-controls">
-      <div class="calendar-year">
-        <span class="control-label">Anno</span>
-        <select id="calendarYear" class="control-select" aria-label="Seleziona anno"></select>
-      </div>
-      <div class="calendar-legend" aria-label="Legenda">
-        <div class="legend-item"><span class="legend-swatch bg-ferie"></span>   <span class="legend-text">Ferie</span></div>
-        <div class="legend-item"><span class="legend-swatch bg-rol"></span>     <span class="legend-text">ROL</span></div>
-        <div class="legend-item"><span class="legend-swatch bg-conto"></span>   <span class="legend-text">Conto ore</span></div>
-        <div class="legend-item"><span class="legend-swatch bg-malattia"></span><span class="legend-text">Malattia</span></div>
-        <div class="legend-item"><span class="legend-swatch bg-ferie-az"></span><span class="legend-text">Ferie az.</span></div>
-        <div class="legend-item"><span class="legend-swatch bg-avis"></span>    <span class="legend-text">Avis</span></div>
-        <div class="legend-item"><span class="legend-swatch bg-festivo"></span> <span class="legend-text">Festivo</span></div>
-        <div class="legend-item"><span class="legend-swatch bg-weekend"></span> <span class="legend-text">Weekend</span></div>
-        <div class="legend-item"><span class="legend-swatch is-pian"></span>    <span class="legend-text">Pianificato</span></div>
-      </div>
-    </div>
+  <div class="calendar-legend" aria-label="Legenda colori">
+    <div class="legend-item"><span class="legend-swatch bg-ferie"></span><span class="legend-text">Ferie</span></div>
+    <div class="legend-item"><span class="legend-swatch bg-rol"></span><span class="legend-text">ROL</span></div>
+    <div class="legend-item"><span class="legend-swatch bg-conto"></span><span class="legend-text">Conto ore</span></div>
+    <div class="legend-item"><span class="legend-swatch bg-malattia"></span><span class="legend-text">Malattia</span></div>
+    <div class="legend-item"><span class="legend-swatch bg-ferie-az"></span><span class="legend-text">Ferie az.</span></div>
+    <div class="legend-item"><span class="legend-swatch bg-avis"></span><span class="legend-text">Avis</span></div>
+    <div class="legend-item"><span class="legend-swatch bg-festivo"></span><span class="legend-text">Festivo</span></div>
+    <div class="legend-item"><span class="legend-swatch bg-weekend"></span><span class="legend-text">Weekend</span></div>
+    <div class="legend-item"><span class="legend-swatch is-pian"></span><span class="legend-text">Pianificato</span></div>
+  </div>
+</div>
 
-    <div class="calendar-wrapper">
-      <table class="calendar-table">
-        <thead><tr id="calendarHeader"></tr></thead>
-        <tbody id="calendarBody"></tbody>
-      </table>
-    </div>
-  </main>
+</header>
 
-  <nav class="tab-bar">
-    <div class="liquid-indicator"></div>
-    <a href="index.html"     class="tab-item">🏠<span>Home</span></a>
-    <a href="ferie.html"     class="tab-item">📅<span>Ferie</span></a>
-    <a href="malattia.html"  class="tab-item">🤒<span>Malattia</span></a>
-    <a href="calendario.html" class="tab-item active">🗓️<span>Calendario</span></a>
-  </nav>
+<div class="calendar-wrapper">
+<table class="calendar-table">
+<thead>
+<tr id="calendarHeader"></tr>
+</thead>
+<tbody id="calendarBody"></tbody>
+</table>
+</div>
+</main>
+<nav class="tab-bar">
+  <div class="liquid-indicator"></div>
 
-  <script src="app.js?v=19"></script>
+  <a href="index.html" class="tab-item">🏠<span>Home</span></a>
+  <a href="ferie.html" class="tab-item">📅<span>Ferie</span></a>
+  <a href="malattia.html" class="tab-item">🤒<span>Malattia</span></a>
+  <a href="calendario.html" class="tab-item active">🗓️<span>Calendario</span></a>
+</nav>
+
+<script src="app.js?v=17"></script>
 </body>
 </html>
