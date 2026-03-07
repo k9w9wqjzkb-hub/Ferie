@@ -175,6 +175,8 @@ function initCalendarioControls() {
     const y = Number(sel.value);
     if (!Number.isFinite(y)) return;
     setSelectedCalendarYear(y);
+    const ct = document.getElementById('calendar-title');
+    if (ct) ct.textContent = `Calendario ${y}`;
     renderizzaCalendario(y);
   };
 }
@@ -651,7 +653,8 @@ function azzeraGoduti() {
     });
 
     s.residuiAP[cat] = (s.residuiAP[cat] + s.spettanteAnnuo[cat] + mat) - god;
-    s.spettanteAnnuo[cat] = (cat === 'conto') ? 0 : (cat === 'ferie' ? 216 : 62);
+    // mantiene lo spettanteAnnuo configurato dall'utente; azzera solo il conto ore
+    s.spettanteAnnuo[cat] = (cat === 'conto') ? 0 : s.spettanteAnnuo[cat];
   });
 
   s.dataInizioConteggio = new Date().getFullYear() + '-01-01';
@@ -978,3 +981,4 @@ function initLiquidTabBar() {
     });
   });
 }
+
