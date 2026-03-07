@@ -251,10 +251,32 @@ body {
 }
 #settings-panel h3 { color: #fff; }
 
-.consuntivo-container table thead tr { background: #F9F9F9 !important; }
-.consuntivo-container table thead th { color: #000 !important; }
-.consuntivo-container table tbody tr { background: #fff !important; }
-.consuntivo-container table tbody td { color: #000 !important; }
+.consuntivo-container table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.consuntivo-container table thead tr {
+  background: rgba(255,255,255,0.07) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.15) !important;
+}
+.consuntivo-container table thead th {
+  color: rgba(255,255,255,0.55) !important;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 10px !important;
+}
+.consuntivo-container table tbody tr {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+}
+.consuntivo-container table tbody tr:last-child {
+  border-bottom: none !important;
+}
+.consuntivo-container table tbody td {
+  color: rgba(255,255,255,0.92) !important;
+  padding: 10px !important;
+}
 
 /* =========================
    BADGES
@@ -274,7 +296,8 @@ body {
 /* =========================
    LIQUID PILL TAB BAR
    ========================= */
-.tab-bar {
+.tab-bar,
+.tab-bar.tab-liquid {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
@@ -296,7 +319,8 @@ body {
   z-index: 1000;
 }
 
-.tab-bar::before {
+.tab-bar::before,
+.tab-bar.tab-liquid::before {
   content: "";
   position: absolute;
   inset: -18px;
@@ -310,7 +334,8 @@ body {
     radial-gradient(120px 80px at 60% 12%, rgba(214,35,80,0.45), transparent 60%);
 }
 
-.tab-bar::after {
+.tab-bar::after,
+.tab-bar.tab-liquid::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -320,7 +345,8 @@ body {
   mix-blend-mode: overlay;
 }
 
-.liquid-indicator {
+.liquid-indicator,
+.tab-bar.tab-liquid .liquid-indicator {
   position: absolute;
   top: 50%;
   left: 0;
@@ -336,7 +362,8 @@ body {
   z-index: 1;
 }
 
-.tab-item {
+.tab-item,
+.tab-bar.tab-liquid .tab-item {
   position: relative;
   flex: 1 1 0;
   min-width: 0;
@@ -353,14 +380,20 @@ body {
   transition: transform .15s ease, color .15s ease;
 }
 
-.tab-item span { font-size: 11px; font-weight: 650; margin-top: 4px; color: rgba(255,255,255,0.78); }
-.tab-item.active { color: rgba(255,255,255,0.95); transform: translateY(-1px); }
-.tab-item:active { transform: scale(0.92); }
+.tab-item span,
+.tab-bar.tab-liquid .tab-item span { font-size: 11px; font-weight: 650; margin-top: 4px; color: rgba(255,255,255,0.78); }
+.tab-item.active,
+.tab-bar.tab-liquid .tab-item.active { color: rgba(255,255,255,0.95); transform: translateY(-1px); }
+.tab-item:active,
+.tab-bar.tab-liquid .tab-item:active { transform: scale(0.92); }
 
 @media (max-width: 390px) {
-  .tab-bar { width: calc(100% - 20px); }
-  .tab-item { font-size: 22px; }
-  .tab-item span { font-size: 10px; }
+  .tab-bar,
+  .tab-bar.tab-liquid { width: calc(100% - 20px); }
+  .tab-item,
+  .tab-bar.tab-liquid .tab-item { font-size: 22px; }
+  .tab-item span,
+  .tab-bar.tab-liquid .tab-item span { font-size: 10px; }
 }
 
 /* =========================
@@ -573,14 +606,107 @@ body[data-page="calendario"] .dashboard-header { padding-bottom: 8px; }
     color: rgba(235,235,245,0.92);
   }
 
-  .tab-bar {
+  .tab-bar,
+  .tab-bar.tab-liquid {
     background: rgba(20,20,22,0.55);
     border: 1px solid rgba(255,255,255,0.14);
     box-shadow: 0 18px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.16);
   }
 
-  .liquid-indicator {
+  .liquid-indicator,
+  .tab-bar.tab-liquid .liquid-indicator {
     background: rgba(255,255,255,0.10);
     border-color: rgba(255,255,255,0.16);
   }
+}
+
+/* =========================
+   TOAST NOTIFICATION
+   ========================= */
+.iw-toast {
+  position: fixed;
+  bottom: calc(100px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(30,30,34,0.92);
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 9999;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+}
+.iw-toast-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.iw-toast-error  { background: rgba(255,59,48,0.92); }
+.iw-toast-success{ background: rgba(30,30,34,0.92); }
+
+/* =========================
+   ANIMAZIONE RIGHE TABELLA
+   ========================= */
+@keyframes rowIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.swipe-row {
+  animation: rowIn 0.28s ease both;
+}
+/* delay progressivo sulle prime 10 righe */
+.swipe-row:nth-child(1)  { animation-delay: 0.00s; }
+.swipe-row:nth-child(2)  { animation-delay: 0.04s; }
+.swipe-row:nth-child(3)  { animation-delay: 0.08s; }
+.swipe-row:nth-child(4)  { animation-delay: 0.12s; }
+.swipe-row:nth-child(5)  { animation-delay: 0.16s; }
+.swipe-row:nth-child(6)  { animation-delay: 0.18s; }
+.swipe-row:nth-child(7)  { animation-delay: 0.20s; }
+.swipe-row:nth-child(8)  { animation-delay: 0.22s; }
+.swipe-row:nth-child(9)  { animation-delay: 0.23s; }
+.swipe-row:nth-child(10) { animation-delay: 0.24s; }
+
+/* =========================
+   TEMA MANUALE (data-theme)
+   ========================= */
+[data-theme="light"] {
+  --bg: #F2F2F7;
+  --card-bg: #FFFFFF;
+  color-scheme: light;
+}
+[data-theme="light"] body                { background: var(--bg); color: #000; }
+[data-theme="light"] .ios-navbar         { background: rgba(255,255,255,0.8); border-bottom: 0.5px solid rgba(0,0,0,0.1); }
+[data-theme="light"] .ios-card           { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+[data-theme="light"] .ios-card-btn       { background: #fff; color: #000; }
+[data-theme="light"] .tab-bar            { background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22); }
+[data-theme="light"] .liquid-indicator   { background: rgba(255,255,255,0.30); border-color: rgba(255,255,255,0.40); }
+
+[data-theme="dark"] {
+  --bg: #0B0B0F;
+  --card-bg: rgba(255,255,255,0.06);
+  color-scheme: dark;
+}
+[data-theme="dark"] body                { background: var(--bg); color: rgba(235,235,245,0.92); }
+[data-theme="dark"] .ios-navbar         { background: rgba(18,18,20,0.70); border-bottom: 0.5px solid rgba(255,255,255,0.10); }
+[data-theme="dark"] .ios-card           { background: rgba(255,255,255,0.06); box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+[data-theme="dark"] .ios-card-btn       { background: rgba(255,255,255,0.06); color: rgba(235,235,245,0.92); }
+[data-theme="dark"] .tab-bar            { background: rgba(20,20,22,0.55); border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 18px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.16); }
+[data-theme="dark"] .liquid-indicator   { background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.16); }
+[data-theme="dark"] .user-select,
+[data-theme="dark"] .user-add           { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.10); }
+[data-theme="dark"] .control-select     { background: rgba(255,255,255,0.10); color: rgba(255,255,255,0.92); }
+[data-theme="dark"] .legend-item        { background: rgba(255,255,255,0.06); }
+
+/* =========================
+   SHEET SCROLL
+   ========================= */
+.sheet-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
