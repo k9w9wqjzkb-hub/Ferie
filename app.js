@@ -314,7 +314,7 @@ window.onload = () => {
 
   aggiornaInterfaccia(activePage);
   if (document.getElementById('history-body')) renderizzaTabella(activePage);
-  if (activePage === 'calendario') renderizzaCalendario();
+  if (activePage === 'calendario') { initCalendarioControls(); renderizzaCalendario(); }
 
   setupDate();
 
