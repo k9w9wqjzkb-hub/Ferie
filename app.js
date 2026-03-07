@@ -162,21 +162,33 @@ function initCalendarioControls() {
   if (!sel) return;
 
   const mov = getMovimenti();
-  const years = new Set(mov.map(m => new Date(m.data).getFullYear()).filter(y => Number.isFinite(y)));
+  // parsing locale per evitare bug UTC
+  const years = new Set(mov.map(m => {
+    const p = (m.data || '').split('-');
+    return p.length === 3 ? parseInt(p[0], 10) : NaN;
+  }).filter(y => Number.isFinite(y)));
+
   const now = new Date().getFullYear();
-  years.add(now); years.add(now-1); years.add(now+1);
+  years.add(now); years.add(now - 1); years.add(now + 1);
 
-  const sorted = Array.from(years).sort((a,b)=>b-a);
-
+  const sorted = Array.from(years).sort((a, b) => b - a);
   const prefer = getSelectedCalendarYear() || (getSettings().annoRiferimento || now);
-  sel.innerHTML = sorted.map(y => `<option value="${y}" ${y===prefer?'selected':''}>${y}</option>`).join("");
+
+  sel.innerHTML = sorted.map(y =>
+    `<option value="${y}" ${y === prefer ? 'selected' : ''}>${y}</option>`
+  ).join("");
+
+  // aggiorna titolo con l'anno selezionato subito
+  const annoInit = Number(sel.value);
+  const ct = document.getElementById('calendar-title');
+  if (ct && Number.isFinite(annoInit)) ct.textContent = `Calendario ${annoInit}`;
 
   sel.onchange = () => {
     const y = Number(sel.value);
     if (!Number.isFinite(y)) return;
     setSelectedCalendarYear(y);
-    const ct = document.getElementById('calendar-title');
-    if (ct) ct.textContent = `Calendario ${y}`;
+    const ct2 = document.getElementById('calendar-title');
+    if (ct2) ct2.textContent = `Calendario ${y}`;
     renderizzaCalendario(y);
   };
 }
@@ -288,14 +300,6 @@ window.onload = () => {
   initSettings();
 
   const activePage = document.body.getAttribute('data-page');
-  // Titolo Calendario
-  if (activePage === 'calendario') {
-    const settings = getSettings();
-    const annoCorrente = settings.annoRiferimento || new Date().getFullYear();
-    const ct = document.getElementById('calendar-title');
-    if (ct) ct.textContent = `Calendario ${annoCorrente}`;
-  }
-
 
   popolaFiltroAnni();
 
@@ -304,17 +308,23 @@ window.onload = () => {
   if (fA) fA.onchange = () => {
     renderizzaTabella(activePage);
     aggiornaInterfaccia(activePage);
-    if (activePage === 'calendario') { initCalendarioControls(); renderizzaCalendario(); }
   };
   if (fT) fT.onchange = () => {
     renderizzaTabella(activePage);
     aggiornaInterfaccia(activePage);
-    if (activePage === 'calendario') renderizzaCalendario();
   };
 
   aggiornaInterfaccia(activePage);
   if (document.getElementById('history-body')) renderizzaTabella(activePage);
-  if (activePage === 'calendario') { initCalendarioControls(); renderizzaCalendario(); }
+
+  if (activePage === 'calendario') {
+    // popola il select anni, imposta titolo e disegna il calendario
+    // initCalendarioControls aggiorna anche il titolo h1 internamente
+    initCalendarioControls();
+    const sel = document.getElementById('calendarYear');
+    const annoIniziale = sel ? Number(sel.value) : null;
+    renderizzaCalendario(annoIniziale);
+  }
 
   setupDate();
 
