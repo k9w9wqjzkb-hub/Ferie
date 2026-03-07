@@ -1,165 +1,182 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>iWork - Dashboard</title>
-    <link rel="stylesheet" href="style.css?v=18">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>iWork - Dashboard</title>
+  <link rel="stylesheet" href="style.css?v=19">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body data-page="index">
-    <header class="ios-navbar">
-        <div class="nav-content">
-            <span class="nav-brand">iWork</span>
-            <div class="user-switch" aria-label="Selettore utente">
-                <select id="userSelect" class="user-select" aria-label="Utente"></select>
-                <button id="userAddBtn" class="user-add" aria-label="Aggiungi utente">＋</button>
-            </div>
-        </div>
+
+  <!-- NAVBAR -->
+  <header class="ios-navbar">
+    <div class="nav-content">
+      <span class="nav-brand">iWork</span>
+      <div class="user-switch">
+        <select id="userSelect" class="user-select" aria-label="Utente"></select>
+        <button id="userAddBtn" class="user-add" aria-label="Aggiungi utente">＋</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <header class="dashboard-header">
+      <p class="date-subtitle" id="current-date"></p>
+      <h1 class="large-title">Dashboard</h1>
     </header>
 
-    <main class="main-content">
-        <header class="dashboard-header">
-            <p class="date-subtitle" id="current-date"></p>
-            <h1 class="large-title">Dashboard</h1>
-        </header>
+    <section class="ios-card-grid">
+      <div class="ios-card" style="border-left:4px solid var(--blue);">
+        <span class="card-label" style="color:var(--blue)">Ferie</span>
+        <span class="value" id="val-ferie">--</span>
+        <span class="subvalue" id="val-ferie-pian">Prev: --</span>
+      </div>
+      <div class="ios-card" style="border-left:4px solid var(--orange);">
+        <span class="card-label" style="color:var(--orange)">Permessi</span>
+        <span class="value" id="val-rol">--</span>
+        <span class="subvalue" id="val-rol-pian">Prev: --</span>
+      </div>
+      <div class="ios-card" style="border-left:4px solid var(--green);">
+        <span class="card-label" style="color:var(--green)">Perm.B.Ore</span>
+        <span class="value" id="val-conto">--</span>
+        <span class="subvalue" id="val-conto-pian">Prev: --</span>
+      </div>
+      <div class="ios-card" style="border-left:4px solid var(--red);">
+        <span class="card-label" style="color:var(--red)">Malattia</span>
+        <span class="value" id="val-malattia">--</span>
+      </div>
+    </section>
 
-        <section class="ios-card-grid">
-            <div class="ios-card" style="border-left: 4px solid var(--blue);">
-                <span class="card-label" style="color:var(--blue)">Ferie</span>
-                <span class="value" id="val-ferie">--</span>
-                <span class="subvalue" id="val-ferie-pian">Prev: --</span>
-            </div>
-            <div class="ios-card" style="border-left: 4px solid var(--orange);">
-                <span class="card-label" style="color:var(--orange)">Permessi</span>
-                <span class="value" id="val-rol">--</span>
-                <span class="subvalue" id="val-rol-pian">Prev: --</span>
-            </div>
-            <div class="ios-card" style="border-left: 4px solid var(--green);">
-                <span class="card-label" style="color:var(--green)">Perm.B.Ore</span>
-                <span class="value" id="val-conto">--</span>
-                <span class="subvalue" id="val-conto-pian">Prev: --</span>
-            </div>
-            <div class="ios-card" style="border-left: 4px solid var(--red);">
-                <span class="card-label" style="color:var(--red)">Malattia</span>
-                <span class="value" id="val-malattia">--</span>
-            </div>
-        </section>
-
-        <div style="padding: 0 16px;">
-            <button class="ios-card-btn" onclick="toggleSheet(true)">
-                <span style="font-weight:600;">Consuntivo & Impostazioni</span>
-                <span style="color:#C6C6C8;">›</span>
-            </button>
-        </div>
-    </main>
-
-    <button class="ios-fab" onclick="toggleModal(true)">+</button>
-
-    <div id="modal-overlay" class="modal-backdrop" onclick="toggleModal(false)"></div>
-    <div id="add-modal" class="ios-page-sheet" style="height: 75%;">
-        <div class="modal-nav">
-            <button onclick="toggleModal(false)" class="btn-link">Annulla</button>
-            <span class="modal-title" style="font-weight:600;">Nuovo Record</span>
-            <button onclick="saveData()" class="btn-link" style="font-weight:700;">Aggiungi</button>
-        </div>
-        <div class="sheet-body" style="padding:20px; height:100%;">
-            <div class="ios-input-group">
-                <div class="ios-input-row">
-                    <label>Tipo</label>
-                    <select id="in-tipo" onchange="gestisciAutoOre()">
-                        <option value="ferie">Ferie (Personali)</option>
-                        <option value="ferie_az">Ferie (Aziendali)</option>
-                        <option value="rol">Permessi (ROL)</option>
-                        <option value="conto">Perm.B.Ore</option>
-                        <option value="malattia">Malattia</option>
-                        <option value="avis">🩸 AVIS</option>
-                        <option value="maturazione">➕ Maturazione</option>
-                    </select>
-                </div>
-                <div class="ios-input-row">
-                    <label>Ore</label>
-                    <input type="number" id="in-ore" step="0.01" placeholder="0.00">
-                </div>
-                <div class="ios-input-row">
-                    <label>Data</label>
-                    <input type="date" id="in-data">
-                </div>
-                <div class="ios-input-row">
-                    <label>Note</label>
-                    <input type="text" id="in-note" placeholder="Opzionale">
-                </div>
-                <div class="ios-input-row" style="justify-content:space-between; display:flex; align-items:center;">
-                    <label>Solo Pianificato</label>
-                    <input type="checkbox" id="in-pianificato" style="width:20px; height:20px;">
-                </div>
-            </div>
-        </div>
+    <div style="padding:0 16px;">
+      <button class="ios-card-btn" onclick="toggleSheet(true)">
+        <span style="font-weight:600;">Consuntivo &amp; Impostazioni</span>
+        <span style="color:var(--text3);">›</span>
+      </button>
     </div>
+  </main>
 
-    <div id="overlay-sheet" class="modal-backdrop" onclick="toggleSheet(false)"></div>
-    <div id="ios-sheet" class="ios-page-sheet" style="height:92%;">
-        <div class="modal-nav">
-            <button onclick="toggleSettings()" class="btn-link" style="font-size: 24px;">⚙️</button>
-            <span class="modal-title">Consuntivo</span>
-            <button onclick="toggleSheet(false)" class="btn-link" style="font-weight:700;">Fatto</button>
-        </div>
-        <div class="sheet-body sheet-scroll" style="padding:20px; overflow-y:auto; height:calc(100% - 60px);">
-            <div id="settings-panel" style="display:none; padding:15px; border-radius:14px; margin-bottom:20px;">
-                <h3 style="margin-top:0; font-size:16px;">Configurazione Residui (Ore)</h3>
-                <div id="settings-inputs"></div>
-                <button onclick="saveSettings()" class="ios-btn-blue" style="margin-top:10px; padding:12px;">Salva e Aggiorna</button>
-            </div>
-            <div class="consuntivo-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="text-align:left;">VOCE</th>
-                            <th style="text-align:center;">AP</th>
-                            <th style="text-align:center;">SPET.</th>
-                            <th style="text-align:center;">GOD.</th>
-                            <th style="text-align:right;">SALDO</th>
-                        </tr>
-                    </thead>
-                    <tbody id="consuntivo-body"></tbody>
-                </table>
-            </div>
-            <div style="margin-top:30px;">
-                <button onclick="exportBackup()" class="ios-btn-white" style="color:var(--blue); display:flex; justify-content:space-between;">
-                    <span>Esporta Backup</span><span>📥</span>
-                </button>
-                <input type="file" id="importFile" style="display:none" onchange="importBackup(event)">
-                <button onclick="document.getElementById('importFile').click()" class="ios-btn-white" style="color:var(--orange); margin-top:10px; display:flex; justify-content:space-between;">
-                    <span>Importa Backup</span><span>📤</span>
-                </button>
-            </div>
-        </div>
+  <!-- FAB -->
+  <button class="ios-fab" onclick="toggleModal(true)" aria-label="Aggiungi record">+</button>
+
+  <!-- BACKDROP modale inserimento -->
+  <div id="modal-overlay" class="modal-backdrop" onclick="toggleModal(false)"></div>
+
+  <!-- MODALE INSERIMENTO / MODIFICA -->
+  <div id="add-modal" class="ios-page-sheet" style="height:75%;">
+    <div class="modal-nav">
+      <button class="btn-link" onclick="toggleModal(false)">Annulla</button>
+      <span class="modal-title">Nuovo Record</span>
+      <button class="btn-link" style="font-weight:700;" onclick="saveData()">Aggiungi</button>
     </div>
+    <div class="sheet-body" style="padding:20px; height:calc(100% - 52px);">
+      <div class="ios-input-group">
+        <div class="ios-input-row">
+          <label>Tipo</label>
+          <select id="in-tipo" onchange="gestisciAutoOre()">
+            <option value="ferie">Ferie (Personali)</option>
+            <option value="ferie_az">Ferie (Aziendali)</option>
+            <option value="rol">Permessi (ROL)</option>
+            <option value="conto">Perm.B.Ore</option>
+            <option value="malattia">Malattia</option>
+            <option value="avis">🩸 AVIS</option>
+            <option value="maturazione">➕ Maturazione</option>
+          </select>
+        </div>
+        <div class="ios-input-row">
+          <label>Ore</label>
+          <input type="number" id="in-ore" step="0.01" placeholder="0.00">
+        </div>
+        <div class="ios-input-row">
+          <label>Data</label>
+          <input type="date" id="in-data">
+        </div>
+        <div class="ios-input-row">
+          <label>Note</label>
+          <input type="text" id="in-note" placeholder="Opzionale">
+        </div>
+        <div class="ios-input-row">
+          <label>Solo Pianificato</label>
+          <input type="checkbox" id="in-pianificato" style="width:20px;height:20px;flex-shrink:0;">
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <nav class="tab-bar">
-  <div class="liquid-indicator"></div>
+  <!-- BACKDROP consuntivo -->
+  <div id="overlay-sheet" class="modal-backdrop" onclick="toggleSheet(false)"></div>
 
-  <a href="index.html" class="tab-item active">🏠<span>Home</span></a>
-  <a href="ferie.html" class="tab-item">📅<span>Ferie</span></a>
-  <a href="malattia.html" class="tab-item">🤒<span>Malattia</span></a>
-  <a href="calendario.html" class="tab-item">🗓️<span>Calendario</span></a>
-</nav>
+  <!-- SHEET CONSUNTIVO & IMPOSTAZIONI -->
+  <div id="ios-sheet" class="ios-page-sheet" style="height:92%;">
+    <div class="modal-nav">
+      <button class="btn-link" style="font-size:22px;" onclick="toggleSettings()">⚙️</button>
+      <span class="modal-title">Consuntivo</span>
+      <button class="btn-link" style="font-weight:700;" onclick="toggleSheet(false)">Fatto</button>
+    </div>
+    <div class="sheet-body" style="padding:20px; height:calc(100% - 52px); overflow-y:auto;">
 
-    <script src="app.js?v=18"></script>
-    <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('Service Worker attivo su:', reg.scope))
-        .catch(err => console.log('Errore SW:', err));
-    });
-  }
-</script>
+      <!-- Settings panel (nascosto di default) -->
+      <div id="settings-panel" style="display:none; margin-bottom:20px;">
+        <h3>Configurazione Residui (Ore)</h3>
+        <div id="settings-inputs"></div>
+        <button class="ios-btn-blue" onclick="saveSettings()">Salva e Aggiorna</button>
+      </div>
+
+      <!-- Tabella consuntivo -->
+      <div class="consuntivo-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:left;">VOCE</th>
+              <th>AP</th>
+              <th>SPET.</th>
+              <th>GOD.</th>
+              <th style="text-align:right;">SALDO</th>
+            </tr>
+          </thead>
+          <tbody id="consuntivo-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Backup -->
+      <div style="margin-top:28px; display:flex; flex-direction:column; gap:10px;">
+        <button class="ios-btn-white" onclick="exportBackup()"
+          style="display:flex; justify-content:space-between; align-items:center; color:var(--blue);">
+          <span>Esporta Backup</span><span>📥</span>
+        </button>
+        <input type="file" id="importFile" style="display:none" onchange="importBackup(event)">
+        <button class="ios-btn-white" onclick="document.getElementById('importFile').click()"
+          style="display:flex; justify-content:space-between; align-items:center; color:var(--orange);">
+          <span>Importa Backup</span><span>📤</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB BAR -->
+  <nav class="tab-bar">
+    <div class="liquid-indicator"></div>
+    <a href="index.html"     class="tab-item active">🏠<span>Home</span></a>
+    <a href="ferie.html"     class="tab-item">📅<span>Ferie</span></a>
+    <a href="malattia.html"  class="tab-item">🤒<span>Malattia</span></a>
+    <a href="calendario.html" class="tab-item">🗓️<span>Calendario</span></a>
+  </nav>
+
+  <script src="app.js?v=19"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

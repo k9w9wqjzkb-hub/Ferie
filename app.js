@@ -764,36 +764,26 @@ function toggleSettings() {
     const c = document.getElementById('settings-inputs');
     if (!c) return;
 
-    const inputStyle = `
-      width:100%; box-sizing:border-box;
-      background:rgba(255,255,255,0.10);
-      border:1px solid rgba(255,255,255,0.18);
-      border-radius:8px; color:#fff;
-      padding:8px 10px; font-size:14px; margin-top:4px;
-    `;
-    const labelStyle = `font-size:10px; font-weight:700; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.5px;`;
-    const rowStyle   = `margin-bottom:14px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:14px;`;
-    const titleStyle = `font-weight:800; font-size:13px; color:#0A84FF; margin-bottom:8px;`;
-
-    c.innerHTML = '';
-    ['ferie', 'rol', 'conto'].forEach(id => {
-      c.innerHTML += `
-        <div style="${rowStyle}">
-          <div style="${titleStyle}">${id.toUpperCase()}</div>
-          <div style="display:flex; gap:10px;">
-            <div style="flex:1;">
-              <label style="${labelStyle}">Residui AP</label>
-              <input type="number" id="set-ap-${id}" value="${s.residuiAP[id]}" step="0.01" style="${inputStyle}">
-            </div>
-            <div style="flex:1;">
-              <label style="${labelStyle}">Spettante</label>
-              <input type="number" id="set-spet-${id}" value="${s.spettanteAnnuo[id]}" step="0.01" style="${inputStyle}">
-            </div>
+    c.innerHTML = ['ferie', 'rol', 'conto'].map(id => `
+      <div class="settings-row">
+        <div class="settings-cat-title">${id.toUpperCase()}</div>
+        <div class="settings-fields">
+          <div class="settings-field">
+            <label>Residui AP</label>
+            <input type="number" id="set-ap-${id}" value="${s.residuiAP[id]}" step="0.01">
           </div>
-        </div>`;
-    });
+          <div class="settings-field">
+            <label>Spettante</label>
+            <input type="number" id="set-spet-${id}" value="${s.spettanteAnnuo[id]}" step="0.01">
+          </div>
+        </div>
+      </div>`).join('');
 
-    c.innerHTML += `<button onclick="azzeraGoduti()" style="width:100%; background:#FF3B30; color:white; border:none; padding:13px; border-radius:10px; font-weight:800; font-size:14px; margin-top:6px; cursor:pointer;">🔄 CONSOLIDA E AZZERA</button>`;
+    c.innerHTML += `<button onclick="azzeraGoduti()"
+      style="width:100%;background:#FF3B30;color:#fff;border:none;padding:13px;
+             border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;margin-top:8px;">
+      🔄 CONSOLIDA E AZZERA
+    </button>`;
   }
 }
 
