@@ -134,16 +134,23 @@ body {
 
 /* ── MODALI & SHEET ───────────────────────────────────── */
 .ios-page-sheet {
-  position: fixed; bottom: -100%; left: 0; width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
   background: rgba(18,18,22,0.92);
   backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
   color: #fff;
   border-radius: 15px 15px 0 0;
-  transition: bottom 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
-  z-index: 1100; box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
+  transform: translateY(110%);
+  transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+  z-index: 1100;
+  box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
   padding-bottom: env(safe-area-inset-bottom);
 }
-.ios-page-sheet.active { bottom: 0; }
+.ios-page-sheet.active {
+  transform: translateY(0);
+}
 .ios-page-sheet .sheet-body { background: transparent !important; }
 
 .modal-backdrop {
