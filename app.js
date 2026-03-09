@@ -7,23 +7,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-const ORE_GIORNO = 8;
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
 
-/* =========================
-   TEMA (light / dark / auto)
-   ========================= */
-function applyTheme() {
-  const t = localStorage.getItem('iwork:theme') || 'auto';
-  document.documentElement.setAttribute('data-theme', t);
-}
-function setTheme(t) {
-  localStorage.setItem('iwork:theme', t);
-  applyTheme();
-  // riapri settings per aggiornare i bottoni
-  const p = document.getElementById('settings-panel');
-  if (p && p.style.display === 'block') { p.style.display='none'; toggleSettings(); }
-}
-applyTheme();
 
 /* =========================
    MULTI-UTENTE (v1)
@@ -177,45 +164,37 @@ function initCalendarioControls() {
   if (!sel) return;
 
   const mov = getMovimenti();
-  // parsing locale per evitare bug UTC
-  const years = new Set(mov.map(m => {
-    const p = (m.data || '').split('-');
-    return p.length === 3 ? parseInt(p[0], 10) : NaN;
-  }).filter(y => Number.isFinite(y)));
-
+  const years = new Set(mov.map(m => new Date(m.data).getFullYear()).filter(y => Number.isFinite(y)));
   const now = new Date().getFullYear();
-  years.add(now); years.add(now - 1); years.add(now + 1);
+  years.add(now); years.add(now-1); years.add(now+1);
 
-  const sorted = Array.from(years).sort((a, b) => b - a);
+  const sorted = Array.from(years).sort((a,b)=>b-a);
+
   const prefer = getSelectedCalendarYear() || (getSettings().annoRiferimento || now);
-
-  sel.innerHTML = sorted.map(y =>
-    `<option value="${y}" ${y === prefer ? 'selected' : ''}>${y}</option>`
-  ).join("");
-
-  // aggiorna titolo con l'anno selezionato subito
-  const annoInit = Number(sel.value);
-  const ct = document.getElementById('calendar-title');
-  if (ct && Number.isFinite(annoInit)) ct.textContent = `Calendario ${annoInit}`;
+  sel.innerHTML = sorted.map(y => `<option value="${y}" ${y===prefer?'selected':''}>${y}</option>`).join("");
 
   sel.onchange = () => {
     const y = Number(sel.value);
     if (!Number.isFinite(y)) return;
     setSelectedCalendarYear(y);
-    const ct2 = document.getElementById('calendar-title');
-    if (ct2) ct2.textContent = `Calendario ${y}`;
+    const ct = document.getElementById('calendar-title');
+    if (ct) ct.textContent = `Calendario ${y}`;
     renderizzaCalendario(y);
   };
 }
 
 
 
-const defaultSettings = {
-  residuiAP: { ferie: 0.00000, rol: 0.00000, conto: 0.00000 },
-  spettanteAnnuo: { ferie: 0.00000, rol: 0.00000, conto: 0.00000 },
-  dataInizioConteggio: "2026-01-01",
-  annoRiferimento: 2026
-};
+function makeDefaultSettings() {
+  const y = new Date().getFullYear();
+  return {
+    residuiAP: { ferie: 0, rol: 0, conto: 0 },
+    spettanteAnnuo: { ferie: 0, rol: 0, conto: 0 },
+    dataInizioConteggio: `${y}-01-01`,
+    annoRiferimento: y
+  };
+}
+const defaultSettings = makeDefaultSettings();
 
 /* =========================
    HELPERS (date, festività)
@@ -230,7 +209,17 @@ function todayLocalISO() {
   return isoLocalDate(t.getFullYear(), t.getMonth(), t.getDate());
 }
 function toITDate(iso) {
-  return new Date(iso).toLocaleDateString('it-IT');
+  // Parse as local date to avoid UTC off-by-one (e.g. "2026-06-15" → giugno 14 in UTC+2)
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('it-IT');
+}
+
+function parseLocalDate(iso) {
+  // Restituisce un Date corrispondente alla mezzanotte locale (evita shift UTC)
+  if (!iso) return new Date(NaN);
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d);
 }
 
 // Calcolo Pasqua (Meeus/Jones/Butcher)
@@ -315,31 +304,35 @@ window.onload = () => {
   initSettings();
 
   const activePage = document.body.getAttribute('data-page');
+  // Titolo Calendario
+  if (activePage === 'calendario') {
+    const settings = getSettings();
+    const annoCorrente = getSelectedCalendarYear() || settings.annoRiferimento || new Date().getFullYear();
+    const ct = document.getElementById('calendar-title');
+    if (ct) ct.textContent = `Calendario ${annoCorrente}`;
+  }
+
 
   popolaFiltroAnni();
+
+  const aggiornaUI = () => {
+    aggiornaInterfaccia(activePage);
+    if (document.getElementById('history-body')) renderizzaTabella(activePage);
+  };
 
   const fA = document.getElementById('filter-anno');
   const fT = document.getElementById('filter-tipo');
   if (fA) fA.onchange = () => {
-    renderizzaTabella(activePage);
-    aggiornaInterfaccia(activePage);
+    aggiornaUI();
+    if (activePage === 'calendario') { initCalendarioControls(); renderizzaCalendario(); }
   };
   if (fT) fT.onchange = () => {
-    renderizzaTabella(activePage);
-    aggiornaInterfaccia(activePage);
+    aggiornaUI();
+    if (activePage === 'calendario') renderizzaCalendario();
   };
 
-  aggiornaInterfaccia(activePage);
-  if (document.getElementById('history-body')) renderizzaTabella(activePage);
-
-  if (activePage === 'calendario') {
-    // popola il select anni, imposta titolo e disegna il calendario
-    // initCalendarioControls aggiorna anche il titolo h1 internamente
-    initCalendarioControls();
-    const sel = document.getElementById('calendarYear');
-    const annoIniziale = sel ? Number(sel.value) : null;
-    renderizzaCalendario(annoIniziale);
-  }
+  aggiornaUI();
+  if (activePage === 'calendario') renderizzaCalendario();
 
   setupDate();
 
@@ -358,16 +351,17 @@ function renderizzaCalendario(annoOverride) {
   const mesi = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUG", "AGO", "SET", "OTT", "NOV", "DIC"];
   const anno = (Number(annoOverride) || getSelectedCalendarYear() || (getSettings().annoRiferimento || new Date().getFullYear()));
 
-  const movimentiAnno = getMovimenti().filter(m => new Date(m.data).getFullYear() === anno);
+  const movimentiAnno = getMovimenti().filter(m => parseLocalDate(m.data).getFullYear() === anno);
   const festivi = new Set(getFestivitaNazionaliIT(anno));
   const patrono = `${anno}-12-07`; // Sant'Ambrogio
 
   tableHeader.innerHTML = '<th class="col-mese">MESE</th>';
   for (let i = 1; i <= 31; i++) tableHeader.innerHTML += `<th>${i}</th>`;
-  tableBody.innerHTML = '';
 
   const sumOre = (arr) => arr.reduce((acc, x) => acc + (Number(x.ore) || 0), 0);
   const hasPian = (arr) => arr.some(x => !!(x.pianificato || x.soloPianificato));
+
+  const rows = [];
 
   mesi.forEach((mese, indexMese) => {
     let riga = `<tr><td class="col-mese">${mese}</td>`;
@@ -393,43 +387,39 @@ function renderizzaCalendario(annoOverride) {
 
       const movGiorno = movimentiAnno.filter(m => m.data === dataISO);
       if (movGiorno.length) {
-        const mal = movGiorno.filter(m => m.tipo === 'malattia');
-        const ferAz = movGiorno.filter(m => m.tipo === 'ferie_az');
-        const avis = movGiorno.filter(m => m.tipo === 'avis');
-        const ferie = movGiorno.filter(m => m.tipo === 'ferie');
-        const rol = movGiorno.filter(m => m.tipo === 'rol');
-        const conto = movGiorno.filter(m => m.tipo === 'conto');
+        const mal    = movGiorno.filter(m => m.tipo === 'malattia');
+        const ferAz  = movGiorno.filter(m => m.tipo === 'ferie_az');
+        const avis   = movGiorno.filter(m => m.tipo === 'avis');
+        const ferie  = movGiorno.filter(m => m.tipo === 'ferie');
+        const rol    = movGiorno.filter(m => m.tipo === 'rol');
+        const conto  = movGiorno.filter(m => m.tipo === 'conto');
+        const timb   = movGiorno.filter(m => m.tipo === 'timbratura');
 
-        const timb = movGiorno.filter(m => m.tipo === 'timbratura');
         // Priorità: malattia > ferie aziendali > avis > ferie > rol > conto > timbratura
         if (mal.length) {
           classe = "bg-malattia";
           contenuto = "M";
         } else if (ferAz.length) {
-          classe = "bg-ferie-az";
+          classe = "bg-ferie-az" + (hasPian(ferAz) ? " is-pian" : "");
           contenuto = "AZ";
-          if (hasPian(ferAz)) classe += " is-pian";
         } else if (avis.length) {
           classe = "bg-avis";
           contenuto = "AV";
         } else if (ferie.length) {
-          classe = "bg-ferie";
           const ore = sumOre(ferie);
+          classe = "bg-ferie" + (hasPian(ferie) ? " is-pian" : "");
           contenuto = (Math.abs(ore - 8) < 0.001) ? "F" : String(ore % 1 === 0 ? ore.toFixed(0) : ore.toFixed(1)).replace('.', ',');
-          if (hasPian(ferie)) classe += " is-pian";
         } else if (rol.length) {
-          classe = "bg-rol";
           const ore = sumOre(rol);
+          classe = "bg-rol" + (hasPian(rol) ? " is-pian" : "");
           contenuto = String(ore % 1 === 0 ? ore.toFixed(0) : ore.toFixed(1)).replace('.', ',');
-          if (hasPian(rol)) classe += " is-pian";
         } else if (conto.length) {
-          classe = "bg-conto";
           const ore = sumOre(conto);
+          classe = "bg-conto" + (hasPian(conto) ? " is-pian" : "");
           contenuto = String(ore % 1 === 0 ? ore.toFixed(0) : ore.toFixed(1)).replace('.', ',');
-          if (hasPian(conto)) classe += " is-pian";
         } else if (timb.length) {
-          classe = "bg-timbratura";
           const ore = sumOre(timb);
+          classe = "bg-timbratura";
           contenuto = String(ore % 1 === 0 ? ore.toFixed(0) : ore.toFixed(1)).replace('.', ',');
         }
       }
@@ -438,8 +428,10 @@ function renderizzaCalendario(annoOverride) {
     }
 
     riga += `</tr>`;
-    tableBody.innerHTML += riga;
+    rows.push(riga);
   });
+
+  tableBody.innerHTML = rows.join('');
 }
 
 /* =========================
@@ -502,7 +494,11 @@ function aggiornaInterfaccia(page) {
 
     if (m.tipo === 'malattia') { calcoli.malattia += ore; return; }
 
-    if (m.tipo.startsWith('mat_')) return; // maturazioni rimosse
+    if (m.tipo.startsWith('mat_')) {
+      const cat = m.tipo.split('_')[1];
+      if (calcoli[cat]) calcoli[cat].spet += ore;
+      return;
+    }
 
     if (m.tipo === 'avis') return;
     if (m.tipo === 'timbratura') return;
@@ -554,75 +550,16 @@ function aggiornaInterfaccia(page) {
     ['ferie', 'rol', 'conto'].forEach(id => {
       const c = calcoli[id];
       const saldo = c.ap + c.spet - c.god;
+      const saldoColor = saldo < 0 ? 'color:#FF3B30; font-weight:700;' : 'font-weight:700;';
       tbody.innerHTML += `<tr>
-        <td style="padding:10px;">${id.toUpperCase()}</td>
-        <td style="text-align:center;">${c.ap.toFixed(2)}</td>
-        <td style="text-align:center;">${c.spet.toFixed(2)}</td>
-        <td style="text-align:center;">${c.god.toFixed(2)}</td>
-        <td style="text-align:right; font-weight:700;">${saldo.toFixed(2)}</td>
+        <td style="padding:10px 10px; font-weight:600;">${id.toUpperCase()}</td>
+        <td style="text-align:center; padding:10px;">${c.ap.toFixed(2)}</td>
+        <td style="text-align:center; padding:10px;">${c.spet.toFixed(2)}</td>
+        <td style="text-align:center; padding:10px;">${c.god.toFixed(2)}</td>
+        <td style="text-align:right; padding:10px; ${saldoColor}">${saldo.toFixed(2)}</td>
       </tr>`;
     });
   }
-
-  // Grafico a barre nella dashboard
-  renderChart(calcoli);
-}
-
-/* =========================
-   GRAFICO A BARRE (SVG, zero dipendenze)
-   ========================= */
-function renderChart(calcoli) {
-  const wrap = document.getElementById('dashboard-chart');
-  if (!wrap) return;
-
-  const items = [
-    { label: 'Ferie',    color: '#34C759', god: calcoli.ferie.god, tot: calcoli.ferie.ap + calcoli.ferie.spet, pian: calcoli.ferie.pian },
-    { label: 'ROL',      color: '#FFCC00', god: calcoli.rol.god,   tot: calcoli.rol.ap   + calcoli.rol.spet,   pian: calcoli.rol.pian },
-    { label: 'B.Ore',    color: '#64D2FF', god: calcoli.conto.god, tot: calcoli.conto.ap + calcoli.conto.spet, pian: calcoli.conto.pian },
-  ];
-
-  const fmtH = h => (h/8).toFixed(1).replace('.',',') + 'gg';
-  const BAR_H = 22, GAP = 36, PAD_L = 52, PAD_R = 16, W = wrap.clientWidth || 320;
-  const barW = W - PAD_L - PAD_R;
-  const maxVal = Math.max(...items.map(i => i.tot), 1);
-  const totalH = items.length * (BAR_H + GAP);
-
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="${totalH}" viewBox="0 0 ${W} ${totalH}">`;
-
-  items.forEach((item, i) => {
-    const y = i * (BAR_H + GAP);
-    const godW  = Math.max(0, (item.god  / maxVal) * barW);
-    const pianW = Math.max(0, (item.pian / maxVal) * barW);
-    const totW  = Math.max(0, (item.tot  / maxVal) * barW);
-
-    // Label sinistra
-    svg += `<text x="${PAD_L - 6}" y="${y + BAR_H/2 + 4}" text-anchor="end" font-size="11" font-weight="700" fill="currentColor" opacity="0.75">${item.label}</text>`;
-
-    // Sfondo barra (totale disponibile)
-    svg += `<rect x="${PAD_L}" y="${y}" width="${totW}" height="${BAR_H}" rx="6" fill="${item.color}" opacity="0.18"/>`;
-
-    // Barra goduto
-    if (godW > 0)
-      svg += `<rect x="${PAD_L}" y="${y}" width="${godW}" height="${BAR_H}" rx="6" fill="${item.color}" opacity="0.9"/>`;
-
-    // Barra pianificato (sovrapposta, tratteggiata)
-    if (pianW > 0)
-      svg += `<rect x="${PAD_L + godW}" y="${y}" width="${Math.min(pianW, barW - godW)}" height="${BAR_H}" rx="6" fill="${item.color}" opacity="0.45"/>`;
-
-    // Valore a destra
-    const saldo = item.tot - item.god;
-    svg += `<text x="${PAD_L + totW + 6}" y="${y + BAR_H/2 + 4}" font-size="10" font-weight="700" fill="currentColor" opacity="0.70">${fmtH(saldo)}</text>`;
-  });
-
-  // Legenda mini
-  const ly = totalH - 10;
-  svg += `<circle cx="${PAD_L}" cy="${ly}" r="4" fill="#34C759" opacity="0.9"/>`;
-  svg += `<text x="${PAD_L+8}" y="${ly+4}" font-size="9" fill="currentColor" opacity="0.6">Goduto</text>`;
-  svg += `<circle cx="${PAD_L+58}" cy="${ly}" r="4" fill="#aaa" opacity="0.7"/>`;
-  svg += `<text x="${PAD_L+66}" y="${ly+4}" font-size="9" fill="currentColor" opacity="0.6">Pianif.</text>`;
-
-  svg += '</svg>';
-  wrap.innerHTML = svg;
 }
 
 /* =========================
@@ -644,27 +581,31 @@ function renderizzaTabella(page) {
     filtered = filtered.filter(m =>
       m.tipo === fT ||
       (fT === 'ferie' && m.tipo === 'ferie_az') ||
+      (fT === 'maturazione' && m.tipo.startsWith('mat_'))
     );
   }
 
-  const rows = filtered.sort((a, b) => new Date(b.data) - new Date(a.data));
-  tbody.innerHTML = rows.map(m => {
-      let label = m.tipo.toUpperCase();
+  tbody.innerHTML = filtered
+    .sort((a, b) => new Date(b.data) - new Date(a.data))
+    .map(m => {
+      let label = m.tipo.replace('mat_', 'MAT. ').toUpperCase();
       if (m.tipo === 'ferie_az') label = "FERIE AZ.";
       if (m.tipo === 'malattia') label = "MALATTIA";
       if (m.tipo === 'avis') label = "AVIS";
-      if (m.tipo === 'timbratura') label = "TIMBRATURA";
+      if (m.tipo === 'timbratura') label = "M.TIMBRATURA";
 
       const oreNum = Number(m.ore);
       const oreTxt = (m.tipo === 'avis') ? '-' : (Number.isFinite(oreNum) ? oreNum.toFixed(2) + 'h' : '0.00h');
-      const badgeClass = m.tipo;
+
+      const badgeClass = m.tipo.startsWith('mat_') ? 'maturazione' : m.tipo;
+
       const isPian = !!(m.pianificato || m.soloPianificato) && canHavePianificato(m.tipo);
       const pianTxt = isPian ? ' <span style="color:#8E8E93; font-weight:700;">(P)</span>' : '';
 
-      return `<tr class="swipe-row" data-id="${m.id}" style="border-bottom:0.5px solid #EEE; position:relative; overflow:hidden; transition: transform 0.25s ease;">
-        <td style="padding:12px; pointer-events:none;">${toITDate(m.data)}</td>
-        <td style="pointer-events:none;"><span class="badge-${badgeClass}">${label}</span>${pianTxt}</td>
-        <td style="font-weight:700; pointer-events:none;">${oreTxt}</td>
+      return `<tr style="border-bottom:0.5px solid #EEE;">
+        <td style="padding:12px;">${toITDate(m.data)}</td>
+        <td><span class="badge-${badgeClass}">${label}</span>${pianTxt}</td>
+        <td style="font-weight:700;">${oreTxt}</td>
         <td class="azioni-cell">
           <div class="azioni-wrap">
             <button class="btn-azione" onclick="modifica(${m.id})" aria-label="Modifica">✏️</button>
@@ -673,48 +614,8 @@ function renderizzaTabella(page) {
           </div>
         </td>
       </tr>`;
-    }).join('');
-
-  // Swipe-to-delete su ogni riga
-  tbody.querySelectorAll('.swipe-row').forEach(row => {
-    let startX = 0, curX = 0, swiping = false, confirmed = false;
-    const THRESHOLD = 80;
-
-    row.addEventListener('touchstart', e => {
-      startX = e.touches[0].clientX;
-      curX = startX;
-      swiping = true;
-      confirmed = false;
-      row.style.transition = 'none';
-    }, { passive: true });
-
-    row.addEventListener('touchmove', e => {
-      if (!swiping) return;
-      curX = e.touches[0].clientX;
-      const dx = Math.min(0, curX - startX);
-      row.style.transform = `translateX(${dx}px)`;
-      // colore di fondo rosso al raggiungimento soglia
-      row.style.background = dx < -THRESHOLD ? 'rgba(255,59,48,0.15)' : '';
-    }, { passive: true });
-
-    row.addEventListener('touchend', () => {
-      if (!swiping) return;
-      swiping = false;
-      const dx = curX - startX;
-      row.style.transition = 'transform 0.3s ease, background 0.3s ease';
-      if (dx < -THRESHOLD) {
-        // vibrazione haptic
-        if (navigator.vibrate) navigator.vibrate(40);
-        // animazione uscita + elimina
-        row.style.transform = 'translateX(-100%)';
-        row.style.opacity = '0';
-        setTimeout(() => elimina(Number(row.dataset.id)), 280);
-      } else {
-        row.style.transform = '';
-        row.style.background = '';
-      }
-    });
-  });
+    })
+    .join('');
 }
 
 /* =========================
@@ -759,15 +660,16 @@ function azzeraGoduti() {
 
   let s = getSettings();
   const mov = getMovimenti();
-  const dInizio = new Date(s.dataInizioConteggio);
+  const dInizio = parseLocalDate(s.dataInizioConteggio);
 
   ['ferie', 'rol', 'conto'].forEach(cat => {
-    let god = 0;
+    let god = 0, mat = 0;
 
     mov.forEach(m => {
-      if (new Date(m.data) >= dInizio) {
+      if (parseLocalDate(m.data) >= dInizio) {
         const o = Number(m.ore) || 0;
-        if (m.tipo === cat || (cat === 'ferie' && m.tipo === 'ferie_az')) {
+        if (m.tipo === 'mat_' + cat) mat += o;
+        else if (m.tipo === cat || (cat === 'ferie' && m.tipo === 'ferie_az')) {
           // consolido solo i GODUTI (non pianificati)
           const isPian = !!(m.pianificato || m.soloPianificato);
           if (!isPian) god += o;
@@ -775,9 +677,8 @@ function azzeraGoduti() {
       }
     });
 
-    s.residuiAP[cat] = (s.residuiAP[cat] + s.spettanteAnnuo[cat]) - god;
-    // mantiene lo spettanteAnnuo configurato dall'utente; azzera solo il conto ore
-    s.spettanteAnnuo[cat] = (cat === 'conto') ? 0 : s.spettanteAnnuo[cat];
+    s.residuiAP[cat] = (s.residuiAP[cat] + s.spettanteAnnuo[cat] + mat) - god;
+    s.spettanteAnnuo[cat] = (cat === 'conto') ? 0 : (cat === 'ferie' ? 216 : 62);
   });
 
   s.dataInizioConteggio = new Date().getFullYear() + '-01-01';
@@ -789,33 +690,23 @@ function azzeraGoduti() {
    SAVE / AUTO ORE
    - usa la stessa modale per inserire e modificare
    ========================= */
-/* =========================
-   TOAST NOTIFICATION
-   ========================= */
-function showToast(msg, type = 'success') {
-  let toast = document.getElementById('iw-toast');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.id = 'iw-toast';
-    document.body.appendChild(toast);
-  }
-  toast.textContent = msg;
-  toast.className = 'iw-toast iw-toast-' + type + ' iw-toast-show';
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => toast.classList.remove('iw-toast-show'), 2400);
-}
-
 function saveData() {
   let t = document.getElementById('in-tipo')?.value;
   let o = parseFloat(document.getElementById('in-ore')?.value);
   const d = document.getElementById('in-data')?.value;
   const note = document.getElementById('in-note') ? (document.getElementById('in-note').value || '') : '';
 
-  if (!d) return showToast('Data mancante', 'error');
-  if (!t) return showToast('Tipo mancante', 'error');
+  if (!d) return alert('Data mancante');
+  if (!t) return alert('Tipo mancante');
+
+  if (t === 'maturazione') {
+    const res = prompt('Destinazione? (ferie, rol, conto)');
+    if (['ferie', 'rol', 'conto'].includes(res)) t = 'mat_' + res;
+    else return;
+  }
 
   // Validazione ore: AVIS può essere 0, gli altri > 0
-  const oreRichieste = (t !== 'avis');
+  const oreRichieste = (t !== 'avis' && t !== 'timbratura');
   if (oreRichieste) {
     if (!Number.isFinite(o) || o <= 0) return alert('Inserisci un numero di ore > 0');
   } else {
@@ -838,16 +729,14 @@ function saveData() {
       // pulizia retrocompatibilità
       delete m[idx].soloPianificato;
       setMovimenti(m);
-      showToast('Record aggiornato ✓');
-      setTimeout(() => location.reload(), 400);
+      location.reload();
       return;
     }
   }
 
-  m.push({ tipo: t, ore: o, data: d, note, pianificato, id: Date.now() });
+  m.push({ tipo: t, ore: o, data: d, note, pianificato, id: genId() });
   setMovimenti(m);
-  showToast('Record salvato ✓');
-  setTimeout(() => location.reload(), 400);
+  location.reload();
 }
 
 function gestisciAutoOre() {
@@ -900,19 +789,6 @@ function toggleSettings() {
       </div>`;
     });
 
-    // theme switcher
-    const savedTheme = localStorage.getItem('iwork:theme') || 'auto';
-    c.innerHTML += `
-      <div style="margin-top:14px; border-top:1px solid rgba(255,255,255,0.10); padding-top:14px;">
-        <div style="font-weight:700; font-size:12px; color:#007AFF; margin-bottom:8px;">TEMA</div>
-        <div style="display:flex; gap:8px;">
-          ${['auto','light','dark'].map(th => `
-            <button onclick="setTheme('${th}')" style="flex:1; padding:10px 0; border-radius:10px; border:none; font-weight:700; font-size:12px; cursor:pointer;
-              background:${savedTheme===th?'var(--blue)':'rgba(255,255,255,0.10)'}; color:${savedTheme===th?'#fff':'inherit'};">
-              ${th==='auto'?'⚙️ Auto':th==='light'?'☀️ Chiaro':'🌙 Scuro'}
-            </button>`).join('')}
-        </div>
-      </div>`;
     c.innerHTML += `<button onclick="azzeraGoduti()" style="width:100%; background:#FF3B30; color:white; border:none; padding:12px; border-radius:8px; font-weight:700; margin-top:10px;">CONSOLIDA E AZZERA</button>`;
   }
 }
@@ -942,11 +818,11 @@ function info(id) {
   const r = m.find(x => x.id === id);
   if (!r) return alert('Record non trovato');
 
-  let label = r.tipo.toUpperCase();
+  let label = r.tipo.replace('mat_', 'MAT. ').toUpperCase();
   if (r.tipo === 'ferie_az') label = 'FERIE AZ.';
   if (r.tipo === 'malattia') label = 'MALATTIA';
   if (r.tipo === 'avis') label = 'AVIS';
-  if (r.tipo === 'timbratura') label = 'TIMBRATURA';
+  if (r.tipo === 'timbratura') label = 'M.TIMBRATURA';
 
   const ore = Number(r.ore) || 0;
   const oreTxt = (r.tipo === 'avis') ? '-' : ore.toFixed(2) + 'h';

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>iWork - Dashboard</title>
-    <link rel="stylesheet" href="style.css?v=17">
+    <link rel="stylesheet" href="style.css?v=18">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
     <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
@@ -51,8 +51,6 @@
                 <span class="value" id="val-malattia">--</span>
             </div>
         </section>
-
-        <div id="dashboard-chart" style="padding: 0 16px 8px; color: inherit;"></div>
 
         <div style="padding: 0 16px;">
             <button class="ios-card-btn" onclick="toggleSheet(true)">
@@ -120,14 +118,14 @@
                 <button onclick="saveSettings()" class="ios-btn-blue" style="margin-top:10px; padding:12px;">Salva e Aggiorna</button>
             </div>
             <div class="consuntivo-container">
-                <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                <table>
                     <thead>
-                        <tr style="background:#F9F9F9; border-bottom:0.5px solid #DDD;">
-                            <th style="padding:10px; text-align:left;">VOCE</th>
-                            <th style="padding:10px; text-align:center;">AP</th>
-                            <th style="padding:10px; text-align:center;">SPET.</th>
-                            <th style="padding:10px; text-align:center;">GOD.</th>
-                            <th style="padding:10px; text-align:right;">SALDO</th>
+                        <tr>
+                            <th style="text-align:left;">VOCE</th>
+                            <th style="text-align:center;">AP</th>
+                            <th style="text-align:center;">SPET.</th>
+                            <th style="text-align:center;">GOD.</th>
+                            <th style="text-align:right;">SALDO</th>
                         </tr>
                     </thead>
                     <tbody id="consuntivo-body"></tbody>
@@ -154,7 +152,7 @@
   <a href="calendario.html" class="tab-item">🗓️<span>Calendario</span></a>
 </nav>
 
-    <script src="app.js?v=17"></script>
+    <script src="app.js?v=18"></script>
     <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
