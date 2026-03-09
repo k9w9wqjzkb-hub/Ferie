@@ -1135,3 +1135,9 @@ body[data-page="calendario"] .dashboard-header{ padding-bottom: 8px; }
   color: rgba(255,255,255,0.92) !important;
   padding: 10px !important;
 }
+
+/* =========================
+   MANCATA TIMBRATURA
+   ========================= */
+.bg-timbratura { background: #FF9500 !important; color: #fff !important; font-weight: 800; }
+.badge-timbratura { background: #FFF3E0; color: #E65100; border: 1px solid #FF9500; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
