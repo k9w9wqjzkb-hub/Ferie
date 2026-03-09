@@ -334,7 +334,12 @@ window.onload = () => {
   };
 
   aggiornaUI();
-  if (activePage === 'calendario') renderizzaCalendario();
+  if (activePage === 'calendario') {
+    initCalendarioControls();
+    const selAnno = document.getElementById('calendarYear');
+    const annoIniziale = selAnno ? Number(selAnno.value) : null;
+    renderizzaCalendario(annoIniziale);
+  }
 
   setupDate();
 
