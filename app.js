@@ -615,9 +615,9 @@ function renderizzaTabella(page) {
         <td style="font-weight:700;">${oreTxt}</td>
         <td class="azioni-cell">
           <div class="azioni-wrap">
-            <button class="btn-azione" onclick="modifica(${m.id})" aria-label="Modifica">✏️</button>
-            <button class="btn-azione" onclick="info(${m.id})" aria-label="Info">ℹ️</button>
-            <button class="btn-azione" onclick="elimina(${m.id})" aria-label="Elimina">🗑️</button>
+            <button class="btn-azione" onclick="modifica('${m.id}')" aria-label="Modifica">✏️</button>
+            <button class="btn-azione" onclick="info('${m.id}')" aria-label="Info">ℹ️</button>
+            <button class="btn-azione" onclick="elimina('${m.id}')" aria-label="Elimina">🗑️</button>
           </div>
         </td>
       </tr>`;
@@ -727,7 +727,8 @@ function saveData() {
   const m = getMovimenti();
 
   if (EDIT_ID !== null) {
-    const idx = m.findIndex(x => x.id === EDIT_ID);
+    // eslint-disable-next-line eqeqeq
+    const idx = m.findIndex(x => x.id == EDIT_ID);
     if (idx < 0) {
       // se per qualche motivo il record non c'è più, ricado su inserimento
       EDIT_ID = null;
@@ -816,13 +817,15 @@ function saveSettings() {
 function elimina(id) {
   if (!confirm('Eliminare?')) return;
   const m = getMovimenti();
-  setMovimenti(m.filter(x => x.id !== id));
+  // eslint-disable-next-line eqeqeq
+  setMovimenti(m.filter(x => x.id != id));
   location.reload();
 }
 
 function info(id) {
   const m = getMovimenti();
-  const r = m.find(x => x.id === id);
+  // eslint-disable-next-line eqeqeq
+  const r = m.find(x => x.id == id);
   if (!r) return alert('Record non trovato');
 
   let label = r.tipo.replace('mat_', 'MAT. ').toUpperCase();
@@ -848,7 +851,8 @@ function info(id) {
 
 function modifica(id) {
   const m = getMovimenti();
-  const r = m.find(x => x.id === id);
+  // eslint-disable-next-line eqeqeq
+  const r = m.find(x => x.id == id);
   if (!r) return alert('Record non trovato');
 
   EDIT_ID = id;
